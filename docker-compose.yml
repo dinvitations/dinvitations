@@ -22,37 +22,37 @@ services:
         networks:
             - sail
         depends_on:
-            - mysql
+            # - mysql
             - pgsql
             - redis
-            - rabbitmq
-            - mailpit
-            - minio
-            - meilisearch
-    mysql:
-        image: 'mysql/mysql-server:8.0'
-        ports:
-            - '${FORWARD_DB_PORT:-3306}:3306'
-        environment:
-            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ROOT_HOST: '%'
-            MYSQL_DATABASE: '${DB_DATABASE}'
-            MYSQL_USER: '${DB_USERNAME}'
-            MYSQL_PASSWORD: '${DB_PASSWORD}'
-            MYSQL_ALLOW_EMPTY_PASSWORD: 1
-        volumes:
-            - 'sail-mysql:/var/lib/mysql'
-            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
-        networks:
-            - sail
-        healthcheck:
-            test:
-                - CMD
-                - mysqladmin
-                - ping
-                - '-p${DB_PASSWORD}'
-            retries: 3
-            timeout: 5s
+            # - rabbitmq
+            # - mailpit
+            # - minio
+            # - meilisearch
+    # mysql:
+    #     image: 'mysql/mysql-server:8.0'
+    #     ports:
+    #         - '${FORWARD_DB_PORT:-3306}:3306'
+    #     environment:
+    #         MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+    #         MYSQL_ROOT_HOST: '%'
+    #         MYSQL_DATABASE: '${DB_DATABASE}'
+    #         MYSQL_USER: '${DB_USERNAME}'
+    #         MYSQL_PASSWORD: '${DB_PASSWORD}'
+    #         MYSQL_ALLOW_EMPTY_PASSWORD: 1
+    #     volumes:
+    #         - 'sail-mysql:/var/lib/mysql'
+    #         - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
+    #     networks:
+    #         - sail
+    #     healthcheck:
+    #         test:
+    #             - CMD
+    #             - mysqladmin
+    #             - ping
+    #             - '-p${DB_PASSWORD}'
+    #         retries: 3
+    #         timeout: 5s
     pgsql:
         image: 'postgres:17'
         ports:
@@ -93,87 +93,87 @@ services:
                 - ping
             retries: 3
             timeout: 5s
-    rabbitmq:
-        image: 'rabbitmq:4-management'
-        ports:
-            - '${FORWARD_RABBITMQ_PORT:-5672}:5672'
-            - '${FORWARD_RABBITMQ_DASHBOARD_PORT:-15672}:15672'
-        environment:
-            RABBITMQ_HOST: '%'
-            RABBITMQ_USER: '${RABBITMQ_USER}'
-            RABBITMQ_PASSWORD: '${RABBITMQ_PASSWORD}'
-            RABBITMQ_VHOST: '${RABBITMQ_VHOST}'
-            RABBITMQ_QUEUE: '${RABBITMQ_QUEUE}'
-        volumes:
-            - 'sail-rabbitmq:/rabbitmq_data'
-        networks:
-            - sail
-        healthcheck:
-            test:
-                - CMD
-                - rabbitmq-diagnostics
-                - '-q'
-                - ping
-            retries: 3
-            timeout: 5s
-    mailpit:
-        image: 'axllent/mailpit:latest'
-        ports:
-            - '${FORWARD_MAILPIT_PORT:-1025}:1025'
-            - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
-        networks:
-            - sail
-    minio:
-        image: 'minio/minio:latest'
-        ports:
-            - '${FORWARD_MINIO_PORT:-9000}:9000'
-            - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
-        environment:
-            MINIO_ROOT_USER: sail
-            MINIO_ROOT_PASSWORD: password
-        volumes:
-            - 'sail-minio:/data'
-        networks:
-            - sail
-        command: 'minio server /data --console-address ":8900"'
-        healthcheck:
-            test:
-                - CMD
-                - mc
-                - ready
-                - local
-            retries: 3
-            timeout: 5s
-    meilisearch:
-        image: 'getmeili/meilisearch:latest'
-        ports:
-            - '${FORWARD_MEILISEARCH_PORT:-7700}:7700'
-        environment:
-            MEILI_NO_ANALYTICS: '${MEILISEARCH_NO_ANALYTICS:-false}'
-        volumes:
-            - 'sail-meilisearch:/meili_data'
-        networks:
-            - sail
-        healthcheck:
-            test:
-                - CMD
-                - wget
-                - '--no-verbose'
-                - '--spider'
-                - 'http://127.0.0.1:7700/health'
-            retries: 3
-            timeout: 5s
+    # rabbitmq:
+    #     image: 'rabbitmq:4-management'
+    #     ports:
+    #         - '${FORWARD_RABBITMQ_PORT:-5672}:5672'
+    #         - '${FORWARD_RABBITMQ_DASHBOARD_PORT:-15672}:15672'
+    #     environment:
+    #         RABBITMQ_HOST: '%'
+    #         RABBITMQ_USER: '${RABBITMQ_USER}'
+    #         RABBITMQ_PASSWORD: '${RABBITMQ_PASSWORD}'
+    #         RABBITMQ_VHOST: '${RABBITMQ_VHOST}'
+    #         RABBITMQ_QUEUE: '${RABBITMQ_QUEUE}'
+    #     volumes:
+    #         - 'sail-rabbitmq:/rabbitmq_data'
+    #     networks:
+    #         - sail
+    #     healthcheck:
+    #         test:
+    #             - CMD
+    #             - rabbitmq-diagnostics
+    #             - '-q'
+    #             - ping
+    #         retries: 3
+    #         timeout: 5s
+    # mailpit:
+    #     image: 'axllent/mailpit:latest'
+    #     ports:
+    #         - '${FORWARD_MAILPIT_PORT:-1025}:1025'
+    #         - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+    #     networks:
+    #         - sail
+    # minio:
+    #     image: 'minio/minio:latest'
+    #     ports:
+    #         - '${FORWARD_MINIO_PORT:-9000}:9000'
+    #         - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
+    #     environment:
+    #         MINIO_ROOT_USER: sail
+    #         MINIO_ROOT_PASSWORD: password
+    #     volumes:
+    #         - 'sail-minio:/data'
+    #     networks:
+    #         - sail
+    #     command: 'minio server /data --console-address ":8900"'
+    #     healthcheck:
+    #         test:
+    #             - CMD
+    #             - mc
+    #             - ready
+    #             - local
+    #         retries: 3
+    #         timeout: 5s
+    # meilisearch:
+    #     image: 'getmeili/meilisearch:latest'
+    #     ports:
+    #         - '${FORWARD_MEILISEARCH_PORT:-7700}:7700'
+    #     environment:
+    #         MEILI_NO_ANALYTICS: '${MEILISEARCH_NO_ANALYTICS:-false}'
+    #     volumes:
+    #         - 'sail-meilisearch:/meili_data'
+    #     networks:
+    #         - sail
+    #     healthcheck:
+    #         test:
+    #             - CMD
+    #             - wget
+    #             - '--no-verbose'
+    #             - '--spider'
+    #             - 'http://127.0.0.1:7700/health'
+    #         retries: 3
+    #         timeout: 5s
 networks:
     sail:
         driver: bridge
 volumes:
-    sail-mysql:
-        driver: local
+    # sail-mysql:
+    #     driver: local
     sail-pgsql:
         driver: local
     sail-redis:
         driver: local
-    sail-minio:
-        driver: local
-    sail-meilisearch:
-        driver: local
+    # sail-minio:
+    #     driver: local
+    # sail-meilisearch:
+    #     driver: local
