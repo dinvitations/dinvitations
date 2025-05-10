@@ -51,7 +51,7 @@ class Login extends Component
             default           => '/',
         };
 
-        $this->redirectIntended(default: $redirectRoute, navigate: true);
+        $this->redirectIntended(default: $redirectRoute);
     }
 
     /**
