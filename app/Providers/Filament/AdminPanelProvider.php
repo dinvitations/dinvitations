@@ -37,6 +37,10 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Log out')
                     ->icon('heroicon-o-arrow-right-on-rectangle')
                     ->color('danger'),
+                'telescope' => MenuItem::make()
+                    ->label('Telescope')
+                    ->icon('heroicon-o-bug-ant')
+                    ->url('telescope'),
             ])
             ->darkMode(false)
             ->colors([
