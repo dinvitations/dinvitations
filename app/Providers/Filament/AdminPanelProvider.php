@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('web')
             ->path('')
             ->login(Login::class)
-            ->homeUrl(fn () => Dashboard::getUrl())
+            ->homeUrl(fn (): string => Dashboard::getUrl())
             ->userMenuItems([
                 'logout' => MenuItem::make()
                     ->icon('heroicon-o-arrow-right-on-rectangle')
@@ -48,7 +48,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('logo.png'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-            ->pages([])
+            ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
