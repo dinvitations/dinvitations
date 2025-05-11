@@ -9,6 +9,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -31,6 +32,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('')
             ->login(Login::class)
             ->homeUrl(fn () => Dashboard::getUrl())
+            ->userMenuItems([
+                'logout' => MenuItem::make()
+                    ->label('Log out')
+                    ->icon('heroicon-o-arrow-right-on-rectangle')
+                    ->color('danger'),
+            ])
+            ->darkMode(false)
             ->colors([
                 'primary' => '#556356',
             ])
