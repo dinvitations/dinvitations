@@ -43,15 +43,7 @@ class Login extends Component
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $user = Auth::user();
-
-        $redirectRoute = match (true) {
-            $user->hasRole('admin')  => route('filament.admin.pages.dashboard', absolute: false),
-            $user->hasRole('client') => route('dashboard', absolute: false),
-            default           => '/',
-        };
-
-        $this->redirectIntended(default: $redirectRoute);
+        $this->redirectIntended(default: route('dashboard', absolute: false));
     }
 
     /**
