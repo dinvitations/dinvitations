@@ -17,7 +17,6 @@ class ClientUserSeeder extends Seeder
             [
                 'name' => 'Restu Edo Setiaji',
                 'password' => Hash::make('Edo998877!'),
-                'has_access' => false,
             ]
         );
 
