@@ -50,8 +50,8 @@ This is a monolith project built with Laravel Sail for its development stage. Th
     ```
 4. Configure these values in `.env` if necessary.
     ```ini
-    FORWARD_DB_PORT=6379
-    FORWARD_REDIS_PORT=5432
+    FORWARD_DB_PORT=5432
+    FORWARD_REDIS_PORT=6379
     DB_HOST=dinvitations-pgsql-1
     ```
 5. Start Sail.
