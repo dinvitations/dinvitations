@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\StatsOverview;
 use Filament\Actions\Action;
 use Filament\Pages\Dashboard as BaseDashboard;
 
@@ -23,6 +24,13 @@ class Dashboard extends BaseDashboard
                 // ->url(route('filament.resources.orders.create'))
                 ->button()
                 ->color('primary'),
+        ];
+    }
+
+    public function getWidgets(): array
+    {
+        return [
+            StatsOverview::class,
         ];
     }
 }
