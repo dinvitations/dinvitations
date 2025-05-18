@@ -30,7 +30,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('web')
             ->path('')
-            ->login(Login::class)
+            ->databaseNotifications()
+            ->login()
             ->homeUrl(fn (): string => Dashboard::getUrl())
             ->userMenuItems([
                 'logout' => MenuItem::make()
@@ -50,10 +51,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
