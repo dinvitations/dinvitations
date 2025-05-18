@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('web')
             ->path('')
+            ->databaseNotifications()
             ->login()
             ->homeUrl(fn (): string => Dashboard::getUrl())
             ->userMenuItems([
