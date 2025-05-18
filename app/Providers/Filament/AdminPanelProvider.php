@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('web')
             ->path('')
-            ->login(Login::class)
+            ->login()
             ->homeUrl(fn (): string => Dashboard::getUrl())
             ->userMenuItems([
                 'logout' => MenuItem::make()
