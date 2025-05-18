@@ -23,6 +23,17 @@ class User extends Authenticatable
     public $incrementing = false;
     protected $keyType = 'string';
 
+    protected static function booted()
+    {
+        static::deleting(function ($user) {
+            if (! $user->isForceDeleting()) {
+                $user->email = null;
+                $user->email_verified_at = null;
+                $user->saveQuietly();
+            }
+        });
+    }
+
     /**
      * The attributes that are mass assignable.
      *

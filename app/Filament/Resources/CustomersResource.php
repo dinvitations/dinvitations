@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CustomersResource\Pages;
-use App\Filament\Resources\CustomersResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,11 +10,8 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Contracts\Pagination\CursorPaginator;
-use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
 
@@ -90,6 +86,9 @@ class CustomersResource extends Resource
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->filters([
+                Tables\Filters\TrashedFilter::make(),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
@@ -102,18 +101,77 @@ class CustomersResource extends Resource
                     )
                     ->modalSubmitActionLabel('Delete')
                     ->successNotification(null)
-                    ->after(function () {
+                    ->after(function ($livewire) {
                         Notification::make()
                             ->success()
                             ->icon('heroicon-o-check-circle')
                             ->title('Sucessfully')
                             ->body('Customer deleted successfully')
                             ->send();
+                        
+                        $livewire->resetTable();
+                    }),
+                Tables\Actions\RestoreAction::make()
+                    ->modalHeading('Restore')
+                    ->modalDescription(
+                        new HtmlString(
+                            'Are you sure you want to restore?<br>
+                            You will need to fill the email address after restoring'
+                        )
+                    )
+                    ->successNotification(null)
+                    ->after(function ($record) {
+                        Notification::make()
+                            ->success()
+                            ->icon('heroicon-o-check-circle')
+                            ->title('Sucessfully')
+                            ->body('Customer restored successfully')
+                            ->send();
+
+                        return redirect(static::getUrl('edit', ['record' => $record]));
                     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->modalHeading('Delete')
+                        ->modalDescription(
+                            new HtmlString(
+                                'Deleting these customers will also remove their order.<br>
+                                Are you sure you want to delete?'
+                            )
+                        )
+                        ->modalSubmitActionLabel('Delete')
+                        ->successNotification(null)
+                        ->after(function ($livewire) {
+                            Notification::make()
+                                ->success()
+                                ->icon('heroicon-o-check-circle')
+                                ->title('Sucessfully')
+                                ->body('Customers deleted successfully')
+                                ->send();
+
+                            $livewire->resetTable();
+                        }),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->modalHeading('Restore')
+                        ->modalDescription(
+                            new HtmlString(
+                                'Are you sure you want to restore?<br>
+                                You will need to fill the email addresses after restoring'
+                            )
+                        )
+                        ->successNotification(null)
+                        ->after(function ($livewire) {
+                            Notification::make()
+                                ->success()
+                                ->icon('heroicon-o-check-circle')
+                                ->title('Sucessfully')
+                                ->body('Customers restored successfully')
+                                ->send();
+
+                            $livewire->resetTable();
+                        }),
                 ]),
             ]);
     }
@@ -121,6 +179,9 @@ class CustomersResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])
             ->role('client');
     }
 

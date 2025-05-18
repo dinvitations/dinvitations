@@ -34,6 +34,13 @@ class EditCustomers extends EditRecord
         return '';
     }
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\RestoreAction::make(),
+        ];
+    }
+
     protected function getFormActions(): array
     {
         return [
