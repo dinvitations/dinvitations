@@ -18,9 +18,7 @@ class Dashboard extends BaseDashboard
         return [
             Action::make('new_order')
                 ->label('New Order')
-                // ->url(route('filament.resources.orders.create'))
-                ->button()
-                ->color('primary'),
+                // ->url(route('filament.web.resources.orders.create')),
         ];
     }
 
