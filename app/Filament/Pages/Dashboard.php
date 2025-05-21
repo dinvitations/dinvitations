@@ -11,8 +11,6 @@ class Dashboard extends BaseDashboard
 {
     protected static string $routePath = 'dashboard';
 
-    protected static string $view = 'filament.pages.dashboard';
-
     protected function getHeaderActions(): array
     {
         return [
