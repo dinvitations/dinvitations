@@ -17,7 +17,7 @@ class PackageFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->randomElement(['basic', 'medium+', 'premium+']),
+            'name' => fake()->word() . ' Package',
             'price' => fake()->numberBetween(100, 9999) * 1000,
             'description' => fake()->sentence(),
         ];
