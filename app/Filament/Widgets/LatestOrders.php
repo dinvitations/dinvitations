@@ -15,16 +15,10 @@ class LatestOrders extends BaseWidget
 {
     protected int | string | array $columnSpan = 'full';
 
-    protected bool $hasSummary = false;
-
     public function table(Table $table): Table
     {
-        $query = Order::query()
-            ->with(['package', 'customer'])
-            ->latest();
-
         return $table
-            ->query($query)
+            ->query(Order::query())
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No orders yet')
             ->emptyStateDescription('Start by creating an order.')
@@ -32,22 +26,19 @@ class LatestOrders extends BaseWidget
                 TextColumn::make('created_at')
                     ->label('Order Date')
                     ->dateTime('M d, Y')
-                    ->sortable()
-                    ->searchable(),
-
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('package.name')
                     ->label('Package')
                     ->formatStateUsing(function ($state) {
                         return ucfirst($state);
                     })
-                    ->sortable()
-                    ->searchable(),
-
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('customer.name')
                     ->label('Customer')
-                    ->sortable()
-                    ->searchable(),
-
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -61,9 +52,8 @@ class LatestOrders extends BaseWidget
                         'primary' => ['delivered', 'cancelled'],
                     ])
                     ->formatStateUsing(fn(string $state): string => $state === 'processing' ? 'Active' : 'Inactive')
-                    ->sortable()
-                    ->searchable(),
-
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('price')
                     ->label('Total Price')
                     ->formatStateUsing(function ($state) {
@@ -73,10 +63,8 @@ class LatestOrders extends BaseWidget
             ])
             ->actions([
                 Action::make('open')
-                    // ->url(fn(Order $record): string => route('filament.resources.orders.view', $record->id))
                     ->label('Open')
-                    ->color('primary')
-                    ->openUrlInNewTab(),
+                    // ->url(fn(Order $record): string => route('filament.resources.orders.view', $record->id)),
             ]);
     }
     
