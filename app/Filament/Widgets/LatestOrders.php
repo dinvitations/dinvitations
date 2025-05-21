@@ -61,6 +61,7 @@ class LatestOrders extends BaseWidget
                     })
                     ->sortable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->actions([
                 Action::make('open')
                     ->label('Open')
