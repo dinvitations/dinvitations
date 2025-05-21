@@ -18,7 +18,7 @@ class LatestOrders extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(Order::query())
+            ->query(Order::query()->latest())
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No orders yet')
             ->emptyStateDescription('Start by creating an order.')
