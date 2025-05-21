@@ -35,6 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->homeUrl(fn (): string => Dashboard::getUrl())
             ->userMenuItems([
                 'logout' => MenuItem::make()
+                    ->label('Logout')
                     ->icon('heroicon-o-arrow-right-on-rectangle')
                     ->color('danger'),
                 'telescope' => MenuItem::make()
