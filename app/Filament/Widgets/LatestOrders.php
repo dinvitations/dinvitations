@@ -43,15 +43,15 @@ class LatestOrders extends BaseWidget
                     ->label('Status')
                     ->badge()
                     ->icon(
-                        fn(string $state): string => $state === 'processing'
+                        fn(string $state): string => $state === 'delivered'
                             ? 'heroicon-s-check-circle'
                             : 'heroicon-o-minus'
                     )
                     ->colors([
-                        'success' => 'processing',
-                        'primary' => ['delivered', 'cancelled'],
+                        'success' => 'delivered',
+                        'primary' => ['processing', 'closed', 'cancelled'],
                     ])
-                    ->formatStateUsing(fn(string $state): string => $state === 'processing' ? 'Active' : 'Inactive')
+                    ->formatStateUsing(fn(string $state): string => $state === 'delivered' ? 'Active' : 'Inactive')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('price')
