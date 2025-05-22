@@ -41,7 +41,7 @@ class CreateCustomers extends CreateRecord
     {
         return Notification::make()
             ->success()
-            ->icon('heroicon-o-check-circle')
+            ->icon('heroicon-s-check-circle')
             ->title('Sucessfully')
             ->body('Customer placed successfully');
     }

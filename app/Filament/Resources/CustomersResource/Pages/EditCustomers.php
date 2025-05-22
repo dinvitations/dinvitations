@@ -24,7 +24,7 @@ class EditCustomers extends EditRecord
     {
         return Notification::make()
             ->success()
-            ->icon('heroicon-o-check-circle')
+            ->icon('heroicon-s-check-circle')
             ->title('Sucessfully')
             ->body('Customer updated successfully');
     }
