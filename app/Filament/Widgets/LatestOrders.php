@@ -18,7 +18,7 @@ class LatestOrders extends BaseWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(Order::query()->latest())
+            ->query(Order::query())
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No orders yet')
             ->emptyStateDescription('Start by creating an order.')
@@ -65,7 +65,7 @@ class LatestOrders extends BaseWidget
             ->actions([
                 Action::make('open')
                     ->label('Open')
-                    // ->url(fn(Order $record): string => route('filament.resources.orders.view', $record->id)),
+                    // ->url(fn(Order $record): string => route('filament.web.resources.orders.view', $record->id)),
             ]);
     }
     
