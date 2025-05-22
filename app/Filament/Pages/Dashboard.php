@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\OrdersResource;
 use App\Filament\Widgets\LatestOrders;
 use App\Filament\Widgets\StatsOverview;
 use Filament\Actions\Action;
@@ -16,7 +17,7 @@ class Dashboard extends BaseDashboard
         return [
             Action::make('new_order')
                 ->label('New Order')
-                // ->url(route('filament.web.resources.orders.create')),
+                ->url(OrdersResource::getUrl('create')),
         ];
     }
 
