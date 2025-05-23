@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_guests', function (Blueprint $table) {
+        Schema::create('invitation_guests', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('event_id')->index();
             $table->uuid('guest_id')->index();
+            $table->uuid('invitation_id')->index();
             $table->enum('type', ['reg', 'vip', 'vvip']);
             $table->boolean('rsvp')->default(false);
             $table->timestamp('attended_at')->nullable();
@@ -23,9 +23,9 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('event_id')
+            $table->foreign('invitation_id')
                   ->references('id')
-                  ->on('events')
+                  ->on('invitations')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
 
@@ -42,6 +42,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_guests');
+        Schema::dropIfExists('invitation_guests');
     }
 };
