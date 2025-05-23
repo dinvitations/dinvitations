@@ -29,10 +29,11 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('web')
+            ->authGuard('web')
             ->path('')
             ->databaseNotifications()
             ->login()
-            ->homeUrl(fn (): string => Dashboard::getUrl())
+            ->emailVerification()
             ->userMenuItems([
                 'logout' => MenuItem::make()
                     ->label('Logout')
