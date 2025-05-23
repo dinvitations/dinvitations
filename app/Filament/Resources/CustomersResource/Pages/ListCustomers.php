@@ -26,12 +26,4 @@ class ListCustomers extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
-
-    protected function paginateTableQuery(Builder $query): Paginator | CursorPaginator
-    {
-        return $query->simplePaginate(
-            perPage: ($this->getTableRecordsPerPage() === 'all') ? $query->count() : $this->getTableRecordsPerPage(),
-            pageName: $this->getTablePaginationPageName(),
-        );
-    }
 }
