@@ -2,16 +2,29 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\LatestOrders;
+use App\Filament\Widgets\StatsOverview;
+use Filament\Actions\Action;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
 {
-    protected static string $view = 'filament.pages.dashboard';
-
     protected static string $routePath = 'dashboard';
 
-    protected static ?string $navigationLabel = 'Dashboard';
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('new_order')
+                ->label('New Order')
+                // ->url(route('filament.web.resources.orders.create')),
+        ];
+    }
 
-    protected static ?string $title = 'Dashboard';
-
+    public function getWidgets(): array
+    {
+        return [
+            StatsOverview::class,
+            LatestOrders::class,
+        ];
+    }
 }

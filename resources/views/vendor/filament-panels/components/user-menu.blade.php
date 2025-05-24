@@ -118,7 +118,7 @@ $items = \Illuminate\Support\Arr::except($items, ['account', 'logout', 'profile'
                 <x-filament::button
                     type="submit"
                     class="w-full">
-                    {{ __('filament-panels::layout.actions.modal.logout.label') ?? 'Log out' }}
+                    {{ __('filament-panels::layout.actions.modal.submit.label') ?? 'Log out' }}
                 </x-filament::button>
             </div>
         </form>

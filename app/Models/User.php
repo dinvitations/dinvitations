@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -22,6 +23,17 @@ class User extends Authenticatable
 
     public $incrementing = false;
     protected $keyType = 'string';
+
+    protected static function booted()
+    {
+        static::deleting(function ($user) {
+            if (! $user->isForceDeleting()) {
+                $user->email = null;
+                $user->email_verified_at = null;
+                $user->saveQuietly();
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
