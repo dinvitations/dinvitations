@@ -9,7 +9,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-        tailwindcss(),
+                'resources/css/filament/web/theme.css',
             ],
             refresh: [
                 ...refreshPaths,
