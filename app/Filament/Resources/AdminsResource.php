@@ -34,7 +34,7 @@ class AdminsResource extends Resource
 
                         Forms\Components\TextInput::make('email')
                             ->email()
-                            ->label('Email')
+                            ->label('Email Address')
                             ->placeholder('Cth: example@mail.com')
                             ->required()
                             ->unique('users', 'email', ignoreRecord: true),
@@ -42,11 +42,12 @@ class AdminsResource extends Resource
                         Forms\Components\TextInput::make('password')
                             ->password()
                             ->revealable()
-                            ->label('Password')
+                            ->label(fn(string $context) => $context === 'create' ? 'Password' : 'New Password')
                             ->placeholder('Masukkan password')
                             ->dehydrated(fn($state) => filled($state))
                             ->required(fn(string $context): bool => $context === 'create')
-                            ->minLength(8),
+                            ->minLength(8)
+                            ->helperText('Please enter minimum 8 characters'),
                     ])
                     ->columns(2)
             ]);
@@ -56,25 +57,34 @@ class AdminsResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->searchable(),
-                Tables\Columns\TextColumn::make('email')->searchable(),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->label('Email Address')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime('M d, Y')
-                    ->label('Last Update'),
+                    ->label('Last Updated')
+                    ->sortable(),
             ])
+            ->defaultSort('updated_at', 'desc')
             ->filters([
-                //
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
+                    ->action(fn($record) => $record->forceDelete())
                     ->modalHeading('Delete')
                     ->modalSubheading('Are you sure you want to delete?')
                     ->modalButton('Delete'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->action(fn($records) => $records->each->forceDelete()),
                 ]),
             ])
             ->emptyStateHeading('No admins yet')

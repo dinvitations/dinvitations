@@ -11,22 +11,18 @@ class EditAdmins extends EditRecord
 {
     protected static string $resource = AdminsResource::class;
 
-    protected static ?string $title = 'Admin';
+    protected static ?string $title = 'Edit Admin';
 
     public function getBreadcrumbs(): array
     {
-        return [self::$title, parent::getBreadcrumb()];
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
+        return ['Admin', parent::getBreadcrumb()];
     }
 
     protected function getSavedNotification(): ?Notification
     {
         return Notification::make()
             ->success()
+            ->icon('heroicon-s-check-circle')
             ->title('Successfully')
             ->body('Admin updated successfully');
     }
