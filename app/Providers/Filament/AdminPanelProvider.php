@@ -45,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
                     ->url('telescope'),
             ])
             ->darkMode(false)
+            ->viteTheme('resources/css/filament/web/theme.css')
             ->colors([
                 'primary' => '#556356',
             ])
