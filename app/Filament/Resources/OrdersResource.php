@@ -128,15 +128,15 @@ class OrdersResource extends Resource
                     ->label('Status')
                     ->badge()
                     ->icon(
-                        fn(string $state): string => $state === 'processing'
+                        fn(string $state): string => $state === 'delivered'
                             ? 'heroicon-s-check-circle'
                             : 'heroicon-o-minus'
                     )
                     ->colors([
-                        'success' => 'processing',
-                        'primary' => ['delivered', 'cancelled'],
+                        'success' => 'delivered',
+                        'primary' => ['processing', 'cancelled'],
                     ])
-                    ->formatStateUsing(fn(string $state): string => $state === 'processing' ? 'Active' : 'Inactive')
+                    ->formatStateUsing(fn(string $state): string => $state === 'delivered' ? 'Active' : 'Inactive')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
