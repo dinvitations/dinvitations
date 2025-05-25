@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Package extends Model
 {
-    /** @use HasFactory<\Database\Factories\PackageFactory> */
     use HasFactory;
     use SoftDeletes;
     use HasUuids;
@@ -26,5 +26,14 @@ class Package extends Model
     public function templates()
     {
         return $this->hasMany(Template::class);
+    }
+
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class)
+            ->using(new class extends Pivot {
+            use HasUuids;
+            })
+            ->withTimestamps();
     }
 }

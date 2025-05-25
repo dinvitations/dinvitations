@@ -21,6 +21,8 @@ class AdminsResource extends Resource
 
     protected static ?string $navigationLabel = 'Admins';
 
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         return $form

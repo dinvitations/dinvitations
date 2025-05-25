@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class Feature extends Model
+{
+    use HasUuids;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'status',
+    ];
+
+    protected static function booted()
+    {
+        static::creating(function ($feature) {
+            $feature->slug = str($feature->name)->slug();
+        });
+    }
+
+    public function packages()
+    {
+        return $this->belongsToMany(Package::class)->withTimestamps();
+    }
+}
