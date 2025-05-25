@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
 {
-    /** @use HasFactory<\Database\Factories\EventFactory> */
     use HasFactory;
     use SoftDeletes;
     use HasUuids;
@@ -19,8 +18,8 @@ class Event extends Model
 
     protected $fillable = [
         'name',
-        'description',
         'package_id',
+        'description',
     ];
 
     public function package()
