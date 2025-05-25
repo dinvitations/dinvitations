@@ -25,7 +25,7 @@ class AdminsResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Card::make()
+                Forms\Components\Section::make()
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Name')
@@ -70,9 +70,6 @@ class AdminsResource extends Resource
                     ->sortable(),
             ])
             ->defaultSort('updated_at', 'desc')
-            ->filters([
-
-            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
@@ -91,13 +88,6 @@ class AdminsResource extends Resource
             ->emptyStateDescription('Start by adding your first one!');
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
     public static function getPages(): array
     {
         return [
@@ -109,7 +99,6 @@ class AdminsResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->whereRelation('roles', 'name', 'admin');
+        return parent::getEloquentQuery()->role('admin');
     }
 }
