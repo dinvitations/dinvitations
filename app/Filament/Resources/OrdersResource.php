@@ -64,6 +64,7 @@ class OrdersResource extends Resource
                         ->placeholder('- Select a package -')
                         ->required()
                         ->options(Package::pluck('name', 'id'))
+                        ->native(false)
                         ->reactive()
                         ->afterStateUpdated(function ($state, callable $set) {
                             $package = Package::find($state);
