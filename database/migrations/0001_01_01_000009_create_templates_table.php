@@ -13,14 +13,20 @@ return new class extends Migration
     {
         Schema::create('templates', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->uuid('package_id')->nullable();
+            $table->uuid('event_id')->nullable();
             $table->string('name')->index();
             $table->string('slug')->unique();
-            $table->uuid('package_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->foreign('package_id')
                   ->references('id')->on('packages')
+                  ->onUpdate('cascade')
+                  ->onDelete('set null');
+
+            $table->foreign('event_id')
+                  ->references('id')->on('events')
                   ->onUpdate('cascade')
                   ->onDelete('set null');
         });

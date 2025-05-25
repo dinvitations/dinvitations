@@ -11,20 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('guests', function (Blueprint $table) {
+        Schema::create('events', function (Blueprint $table) {
             $table->uuid('id')->primary();
-
-            $table->uuid('user_id');
+            $table->uuid('package_id')->nullable();
             $table->string('name')->index();
-            $table->string('phone_number')->nullable();
-            $table->enum('type_default', ['reg', 'vip', 'vvip'])->default('reg');
+            $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('user_id')
-                  ->references('id')->on('users')
+            $table->foreign('package_id')
+                  ->references('id')->on('packages')
                   ->onUpdate('cascade')
-                  ->onDelete('cascade');
+                  ->onDelete('set null');
         });
     }
 
@@ -33,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('guests');
+        Schema::dropIfExists('events');
     }
 };

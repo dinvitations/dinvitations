@@ -2,19 +2,14 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Auth\Login;
-use App\Filament\Pages\Dashboard;
-use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\MenuItem;
-use Filament\Pages;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -29,10 +24,11 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('web')
+            ->authGuard('web')
             ->path('')
             ->databaseNotifications()
             ->login()
-            ->homeUrl(fn (): string => Dashboard::getUrl())
+            ->emailVerification()
             ->userMenuItems([
                 'logout' => MenuItem::make()
                     ->label('Logout')
@@ -44,6 +40,7 @@ class AdminPanelProvider extends PanelProvider
                     ->url('telescope'),
             ])
             ->darkMode(false)
+            ->viteTheme('resources/css/filament/web/theme.css')
             ->colors([
                 'primary' => '#556356',
             ])
@@ -65,6 +62,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->navigationGroups([
+                NavigationGroup::make()
+                    ->label('Shop'),
+                NavigationGroup::make()
+                    ->label('Manage'),
             ]);
     }
 }
