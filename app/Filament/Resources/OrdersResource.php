@@ -156,7 +156,7 @@ class OrdersResource extends Resource
                     ->successNotification(function ($livewire) {
                         Notification::make()
                             ->success()
-                            ->icon('heroicon-o-check-circle')
+                            ->icon('heroicon-s-check-circle')
                             ->title('Sucessfully')
                             ->body('Order deleted successfully')
                             ->send();
@@ -173,7 +173,7 @@ class OrdersResource extends Resource
                         ->successNotification(function ($livewire) {
                             Notification::make()
                                 ->success()
-                                ->icon('heroicon-o-check-circle')
+                                ->icon('heroicon-s-check-circle')
                                 ->title('Sucessfully')
                                 ->body('Orders deleted successfully')
                                 ->send();
