@@ -29,10 +29,6 @@ class EventResource extends Resource
                             ->required()
                             ->helperText('E.g. Wedding, Birthday, etc.'),
 
-                        Forms\Components\Select::make('package_id')
-                            ->relationship('package', 'name')
-                            ->required(),
-
                         Forms\Components\RichEditor::make('description')
                             ->toolbarButtons(buttons: [
                                 'bold',
