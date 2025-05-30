@@ -1,4 +1,6 @@
-import preset from './vendor/filament/support/tailwind.config.preset'
+import preset from './vendor/filament/support/tailwind.config.preset';
+
+const safelist = require('./tailwind-safelist.json');
 
 export default {
     presets: [preset],
@@ -7,4 +9,5 @@ export default {
         './resources/views/filament/**/*.blade.php',
         './vendor/filament/**/*.blade.php',
     ],
+    safelist
 }
