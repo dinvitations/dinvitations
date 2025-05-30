@@ -24,7 +24,7 @@ class EventFactory extends Factory
         $package = null;
 
         return [
-            'name' => Str::title(fake()->word()),
+            'name' => Str::title(fake()->unique()->word()),
             'description' => fake()->sentence(),
             'package_id' => $package?->id,
         ];
