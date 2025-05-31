@@ -24,24 +24,6 @@ class EditPackages extends EditRecord
         return $data;
     }
 
-    protected function handleRecordUpdate(Model $package, array $data): Package
-    {
-        return DB::transaction(function () use ($package, $data) {
-            // Update package
-            $package->update(Arr::except($data, ['features']));
-
-            // Sync features
-            $featureIds = [];
-            foreach ($data['features'] ?? [] as $feature) {
-                $feature = Feature::firstOrCreate(['name' => $feature]);
-                $featureIds[] = $feature->id;
-            }
-            $package->features()->sync($featureIds);
-
-            return $package->refresh();
-        });
-    }
-
     protected function getSavedNotification(): ?Notification
     {
         return Notification::make()

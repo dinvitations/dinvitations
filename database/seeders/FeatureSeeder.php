@@ -13,7 +13,7 @@ class FeatureSeeder extends Seeder
     public function run(): void
     {
         $features = [
-            'QR Code Redeem',
+            'Scan & Redeem Station',
             'Digital Greeting Wall',
             'Digital Selfie Station',
         ];
