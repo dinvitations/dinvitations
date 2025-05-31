@@ -40,23 +40,8 @@ class Template extends Model
         return $this->hasMany(TemplateView::class);
     }
 
-    public function previews()
-    {
-        return $this->hasMany(TemplatePreview::class);
-    }
-
     public function getViewHtmlAttribute()
     {
         return $this->views()->html()->first();
-    }
-
-    public function getPreviewWebAttribute()
-    {
-        return $this->previews()->web()->first();
-    }
-
-    public function getPreviewMobileAttribute()
-    {
-        return $this->previews()->mobile()->first();
     }
 }
