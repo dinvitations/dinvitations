@@ -58,7 +58,7 @@ class TemplatesResource extends Resource
                             ->label('Template Preview')
                             ->disk('minio')
                             ->directory('template-previews')
-                            ->visibility('public')
+                            ->visibility('private')
                             ->image()
                             ->imageEditor()
                             ->imageResizeMode('force')
@@ -116,6 +116,7 @@ class TemplatesResource extends Resource
                     Tables\Columns\ImageColumn::make('preview_url')
                         ->label('Template Preview')
                         ->disk('minio')
+                        ->visibility('private')
                         ->width('100%')
                         ->height('auto')
                         ->defaultImageUrl('https://placehold.co/640x480'),
