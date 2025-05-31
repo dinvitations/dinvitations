@@ -62,7 +62,6 @@ class EventResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->action(fn($record) => $record->forceDelete())
                     ->modalHeading('Delete')
                     ->modalSubheading('Are you sure you want to delete?')
                     ->modalButton('Delete'),
@@ -70,7 +69,9 @@ class EventResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->action(fn($records) => $records->each->forceDelete()),
+                        ->modalHeading('Delete')
+                        ->modalSubheading('Are you sure you want to delete?')
+                        ->modalButton('Delete'),
                 ]),
             ])
             ->emptyStateHeading('No event category yet')
