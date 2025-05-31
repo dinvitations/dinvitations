@@ -118,19 +118,7 @@ class TemplatesResource extends Resource
                         ->disk('minio')
                         ->width('100%')
                         ->height('auto')
-                        ->defaultImageUrl(function ($state, $record) {
-                            return $state ?? ($record->previewWeb?->url ?? 'https://placehold.co/640x480');
-                        })
-                        ->action(
-                            Tables\Actions\Action::make('preview_mobile')
-                                ->modalHeading('Mobile Preview')
-                                ->modalContent(function ($record) {
-                                    $mobilePreview = $record->previewMobile?->url ?? 'https://placehold.co/1080x1920';
-                                    return new HtmlString('<img src="' . e($mobilePreview) . '" class="w-full h-full object-cover" />');
-                                })
-                                ->modalCancelAction(fn(StaticAction $action) => $action->label('Close'))
-                                ->modalSubmitAction(false)
-                        ),
+                        ->defaultImageUrl('https://placehold.co/640x480'),
                     Tables\Columns\TextColumn::make('name')
                         ->label('Name')
                         ->weight('bold')
