@@ -110,7 +110,6 @@ services:
             MINIO_ROOT_PASSWORD: password
         volumes:
             - 'sail-minio:/data'
-            - './docker/minio/template-previews-policy.json:/policy/template-previews-policy.json:ro'
             - './docker/minio/entrypoint.sh:/entrypoint.sh:ro'
         networks:
             sail:
