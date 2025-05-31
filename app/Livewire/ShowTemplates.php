@@ -5,10 +5,12 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Template;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Layout;
+use Livewire\Livewire;
 
+#[Layout('components.layouts.show-templates')]
 class ShowTemplates extends Component
 {
     public ?Template $record = null;
@@ -28,43 +30,8 @@ class ShowTemplates extends Component
 
             $html = Storage::disk($view->file->disk)->get($view->file->path);
 
-            $this->updateTailwindSafelist(
-                $this->extractTailwindClasses($html)
-            );
-
             return $html;
         });
-    }
-
-    private function extractTailwindClasses(string $html): array
-    {
-        preg_match_all('/class=["\']([^"\']+)["\']/', $html, $matches);
-
-        return collect($matches[1])
-            ->flatMap(fn($classes) => preg_split('/\s+/', trim($classes)))
-            ->map(fn($class) => trim($class))
-            ->filter()
-            ->unique()
-            ->values()
-            ->toArray();
-    }
-
-    private function updateTailwindSafelist(array $classes)
-    {
-        $filePath = base_path('tailwind-safelist.json');
-
-        $existing = file_exists($filePath)
-            ? json_decode(file_get_contents($filePath), true) ?? []
-            : [];
-
-        $merged = collect($existing)
-            ->merge($classes)
-            ->unique()
-            ->sort()
-            ->values()
-            ->toArray();
-
-        file_put_contents($filePath, json_encode($merged, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     public function render()
