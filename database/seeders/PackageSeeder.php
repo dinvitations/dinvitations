@@ -13,13 +13,8 @@ class PackageSeeder extends Seeder
      */
     public function run(): void
     {
-        $features = [
-            'Scan & Redeem Station',
-            'Digital Greeting Wall',
-            'Digital Selfie Station',
-        ];
         $features = Feature::query()
-            ->whereIn('name', $features)
+            ->whereIn('name', Feature::FEATURES)
             ->get()
             ->pluck('id')
             ->toArray();

@@ -18,6 +18,12 @@ class Feature extends Model
         'status',
     ];
 
+    const FEATURES = [
+        'scan' => 'Scan & Redeem Station',
+        'greeting' => 'Digital Greeting Wall',
+        'selfie' => 'Digital Selfie Station',
+    ];
+
     protected static function booted()
     {
         static::creating(function ($feature) {
@@ -27,6 +33,8 @@ class Feature extends Model
 
     public function packages()
     {
-        return $this->belongsToMany(Package::class)->withTimestamps();
+        return $this->belongsToMany(Package::class)
+            ->using(FeaturePackage::class)
+            ->withTimestamps();
     }
 }

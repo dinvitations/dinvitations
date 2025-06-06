@@ -54,7 +54,7 @@ class PackagesResource extends Resource
                             ->reactive()
                             ->options(function ($get) {
                                 return Feature::query()
-                                    ->where('status', 'active')
+                                    ->active()
                                     ->whereNotIn('name', $get('features') ?? [])
                                     ->orderBy('name')
                                     ->limit(5)
@@ -100,7 +100,6 @@ class PackagesResource extends Resource
     {
         return [
             'index' => Pages\ListPackages::route('/'),
-            'create' => Pages\CreatePackages::route('/create'),
             'edit' => Pages\EditPackages::route('/{record}/edit'),
         ];
     }

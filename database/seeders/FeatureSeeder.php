@@ -12,13 +12,7 @@ class FeatureSeeder extends Seeder
      */
     public function run(): void
     {
-        $features = [
-            'Scan & Redeem Station',
-            'Digital Greeting Wall',
-            'Digital Selfie Station',
-        ];
-
-        foreach ($features as $feature) {
+        foreach (Feature::FEATURES as $feature) {
             Feature::firstOrCreate([
                 'name' => $feature,
             ]);
