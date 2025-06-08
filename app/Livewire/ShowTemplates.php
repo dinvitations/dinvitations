@@ -27,10 +27,11 @@ class ShowTemplates extends Component
         $cacheKey = "template_builder_data_{$this->record->id}";
 
         $this->data = Cache::remember($cacheKey, now()->addMinutes(10), function () {
-            $views = $this->record
-                ->views()
+            $types = array_keys(TemplateView::getTypes());
+
+            $views = $this->record->views()
                 ->with('file')
-                ->whereIn('type', ['html', 'css', 'js', 'json'])
+                ->whereIn('type', $types)
                 ->get()
                 ->keyBy('type');
 
@@ -52,8 +53,10 @@ class ShowTemplates extends Component
                 'css' => $getContent($views->get('css')),
                 'js' => $getContent($views->get('js')),
                 'grapesjs' => [
-                    'projectData' => $getContent($views->get('json')),
-                ]
+                    'projectData' => $getContent($views->get('grapesjs.projectData')),
+                    'components' => $getContent($views->get('grapesjs.components')),
+                    'style' => $getContent($views->get('grapesjs.style')),
+                ],
             ];
         });
     }

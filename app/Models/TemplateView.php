@@ -14,6 +14,41 @@ class TemplateView extends Model
     use HasFactory;
     use HasUuids;
 
+    public const TYPE = [
+        'html' => [
+            'filename' => 'template.html',
+            'extension' => 'html',
+            'mime' => 'text/html',
+        ],
+        'css' => [
+            'filename' => 'style.css',
+            'extension' => 'css',
+            'mime' => 'text/css',
+        ],
+        'js' => [
+            'filename' => 'script.js',
+            'extension' => 'js',
+            'mime' => 'application/javascript',
+        ],
+        'grapesjs' => [
+            'projectData' => [
+                'filename' => 'project-data.json',
+                'extension' => 'json',
+                'mime' => 'application/json',
+            ],
+            'components' => [
+                'filename' => 'components.json',
+                'extension' => 'json',
+                'mime' => 'application/json',
+            ],
+            'style' => [
+                'filename' => 'style.json',
+                'extension' => 'json',
+                'mime' => 'application/json',
+            ],
+        ],
+    ];
+
     protected $keyType = 'string';
     public $incrementing = false;
 
@@ -34,11 +69,6 @@ class TemplateView extends Model
         return $this->belongsTo(File::class);
     }
 
-    public function scopeHtml($query)
-    {
-        return $query->where('type', 'html');
-    }
-
     public function getUrlAttribute(): ?string
     {
         return $this->file ?
@@ -48,6 +78,23 @@ class TemplateView extends Model
                     now()->addMinutes(5)
                 )
             : null;
+    } 
+
+    public static function getTypes(): array
+    {
+        $flat = [];
+
+        foreach (self::TYPE as $key => $value) {
+            if (is_array($value) && isset($value['filename'])) {
+                $flat[$key] = $value;
+            } else {
+                foreach ($value as $subKey => $meta) {
+                    $flat["{$key}.{$subKey}"] = $meta;
+                }
+            }
+        }
+
+        return $flat;
     }
 
 }

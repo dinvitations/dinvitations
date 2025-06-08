@@ -38,9 +38,4 @@ class Template extends Model
     {
         return $this->hasMany(TemplateView::class);
     }
-
-    public function getViewHtmlAttribute()
-    {
-        return $this->views()->html()->first();
-    }
 }
