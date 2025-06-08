@@ -10,6 +10,7 @@ use Exception;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Alignment;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -45,7 +46,7 @@ class CreateTemplates extends CreateRecord
     {
         return [
             $this->getCancelFormAction(),
-            $this->getSubmitFormAction(),
+            $this->getSubmitFormAction()
         ];
     }
 
@@ -56,39 +57,55 @@ class CreateTemplates extends CreateRecord
 
     private function createTemplateView(Template $record, array $data)
     {
+        $viewTypes = TemplateView::getTypes();
         $disk = 'minio';
         $uuid = Str::uuid();
+        $folderPath = "template-views/{$uuid}";
 
-        $htmlContent = $data['template_builder'];
+        foreach ($viewTypes as $type => $meta) {
+            $content = data_get($data['template_builder'], $type, '');
 
-        $htmlPath = "{$uuid}.html";
-        Storage::disk($disk)->put($htmlPath, $htmlContent);
-        if (!Storage::disk($disk)->exists($htmlPath)) {
-            throw new \Exception("Failed to store HTML file at {$htmlPath}");
+            if (is_array($content)) {
+                $content = json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+            }
+
+            if (empty($content)) {
+                continue;
+            }
+
+            $relativePath = "{$folderPath}/{$meta['filename']}";
+            $filename = "{$uuid}_" . str_replace('.', '_', $type);
+
+            Storage::disk($disk)->put($relativePath, $content);
+
+            if (!Storage::disk($disk)->exists($relativePath)) {
+                throw new \Exception("Failed to store {$type} file at {$relativePath}", Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            $size = Storage::disk($disk)->size($relativePath);
+
+            $file = File::create([
+                'fileable_type' => TemplateView::class,
+                'fileable_id' => $record->id,
+                'name' => strtoupper($type) . " TemplateView {$record->id}",
+                'original_name' => $meta['filename'],
+                'filename' => $filename,
+                'path' => $relativePath,
+                'disk' => $disk,
+                'extension' => $meta['extension'],
+                'type' => 'other',
+                'size' => $size,
+                'mime_type' => $meta['mime'],
+                'status' => 'uploaded',
+                'visibility' => 'public',
+            ]);
+
+            TemplateView::create([
+                'template_id' => $record->id,
+                'file_id' => $file->id,
+                'type' => $type,
+            ]);
         }
-
-        $size = Storage::disk($disk)->size($htmlPath);
-        $htmlFile = File::create([
-            'fileable_type' => TemplateView::class,
-            'fileable_id' => $record->id,
-            'name' => "HTML TemplateView {$record->id}",
-            'original_name' => "{$uuid}.html",
-            'filename' => $uuid,
-            'path' => $htmlPath,
-            'disk' => $disk,
-            'extension' => 'html',
-            'type' => 'other',
-            'size' => $size,
-            'mime_type' => 'text/html',
-            'status' => 'uploaded',
-            'visibility' => 'public',
-        ]);
-
-        TemplateView::create([
-            'template_id' => $record->id,
-            'file_id' => $htmlFile->id,
-            'type' => 'html',
-        ]);
     }
 
     public static string | Alignment $formActionsAlignment = Alignment::Between;

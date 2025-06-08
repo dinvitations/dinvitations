@@ -57,55 +57,67 @@ class EditTemplates extends EditRecord
 
     private function updateTemplateView(Template $record, array $data)
     {
+        $viewTypes = TemplateView::getTypes();
         $disk = 'minio';
         $uuid = Str::uuid();
+        $folderPath = "template-views/{$uuid}";
 
-        if ($record?->viewHtml) {
-            $existingTemplateView = $record->viewHtml;
-            if ($existingTemplateView) {
-                $existingTemplateViewFile = $existingTemplateView->file;
-
-                if (Storage::disk($existingTemplateViewFile->disk)->exists($existingTemplateViewFile->path)) {
-                    Storage::disk($existingTemplateViewFile->disk)->delete($existingTemplateViewFile->path);
+        $record->views()
+            ->whereIn('type', array_keys($viewTypes))
+            ->each(function ($view) {
+                if ($view->file && Storage::disk($view->file->disk)->exists($view->file->path)) {
+                    Storage::disk($view->file->disk)->delete($view->file->path);
                 }
-                $existingTemplateViewFile->delete();
-                $existingTemplateView->delete();
+                $view->file?->delete();
+                $view->delete();
+            });
+
+        foreach ($viewTypes as $type => $meta) {
+            $content = data_get($data['template_builder'], $type, '');
+            
+            if (is_array($content)) {
+                $content = json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             }
+
+            if (empty($content) || trim($content) === '') {
+                continue;
+            }
+
+            $relativePath = "{$folderPath}/{$meta['filename']}";
+            $filename = "{$uuid}_" . str_replace('.', '_', $type);
+
+            Storage::disk($disk)->put($relativePath, $content);
+
+            if (!Storage::disk($disk)->exists($relativePath)) {
+                throw new \Exception("Failed to store {$type} file at {$relativePath}", Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+
+            $size = Storage::disk($disk)->size($relativePath);
+
+            $file = File::create([
+                'fileable_type' => TemplateView::class,
+                'fileable_id' => $record->id,
+                'name' => strtoupper($type) . " TemplateView {$record->id}",
+                'original_name' => $meta['filename'],
+                'filename' => $filename,
+                'path' => $relativePath,
+                'disk' => $disk,
+                'extension' => $meta['extension'],
+                'type' => 'other',
+                'size' => $size,
+                'mime_type' => $meta['mime'],
+                'status' => 'uploaded',
+                'visibility' => 'public',
+            ]);
+
+            TemplateView::create([
+                'template_id' => $record->id,
+                'file_id' => $file->id,
+                'type' => $type,
+            ]);
         }
 
-        $htmlContent = $data['template_builder'];
-
-        $htmlPath = "{$uuid}.html";
-        Storage::disk($disk)->put($htmlPath, $htmlContent);
-        if (!Storage::disk($disk)->exists($htmlPath)) {
-            throw new Exception("Failed to store HTML file at {$htmlPath}", Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-        $size = Storage::disk($disk)->size($htmlPath);
-        $htmlFile = File::create([
-            'fileable_type' => TemplateView::class,
-            'fileable_id' => $record->id,
-            'name' => "HTML TemplateView {$record->id}",
-            'original_name' => "{$uuid}.html",
-            'filename' => $uuid,
-            'path' => $htmlPath,
-            'disk' => $disk,
-            'extension' => 'html',
-            'type' => 'other',
-            'size' => $size,
-            'mime_type' => 'text/html',
-            'status' => 'uploaded',
-            'visibility' => 'public',
-        ]);
-
-        TemplateView::create([
-            'template_id' => $record->id,
-            'file_id' => $htmlFile->id,
-            'type' => 'html',
-        ]);
-
-        $cacheKey = "template_html_{$record->id}";
-        Cache::forget($cacheKey);
+        Cache::forget("template_builder_data_{$record->id}");
     }
 
     public static string | Alignment $formActionsAlignment = Alignment::Between;

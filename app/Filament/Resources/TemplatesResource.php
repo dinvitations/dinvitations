@@ -5,17 +5,17 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TemplatesResource\Pages;
 use App\Models\Event;
 use App\Models\Template;
+use App\Models\TemplateView;
+use App\Support\Constants;
 use Dotswan\FilamentGrapesjs\Fields\GrapesJs;
 use Filament\Forms;
-use Filament\Actions\StaticAction;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 class TemplatesResource extends Resource
@@ -52,6 +52,7 @@ class TemplatesResource extends Resource
                             ->native(false),
                         Forms\Components\TextInput::make('slug')
                             ->maxLength(255)
+                            ->notIn(Constants::get('MENU', 'slug'))
                             ->disabled()
                             ->dehydrated(),
                         Forms\Components\FileUpload::make('preview_url')
@@ -74,29 +75,80 @@ class TemplatesResource extends Resource
                             ->label('Template Builder')
                             ->dehydrated(false)
                             ->afterStateHydrated(function (GrapesJs $component, ?Template $record) {
-                                if ($record) {
-                                    $cacheKey = "template_html_{$record->id}";
-                                    $html = cache()->remember($cacheKey, now()->addMinutes(10), function () use ($record) {
-                                        $view = $record->viewHtml;
+                                if (!$record) {
+                                    return;
+                                }
 
-                                        if (
-                                            !$view ||
-                                            !$view->file ||
-                                            !Storage::disk($view->file->disk)->exists($view->file->path)
-                                        ) {
+                                $cacheKey = "template_builder_data_{$record->id}";
+
+                                $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($record) {
+                                    $types = array_keys(TemplateView::getTypes());
+
+                                    $views = $record->views()
+                                        ->with('file')
+                                        ->whereIn('type', $types)
+                                        ->get()
+                                        ->keyBy('type');
+
+                                    $getContent = function (?TemplateView $view): string {
+                                        if (!$view || !$view->file) {
                                             return '';
                                         }
 
-                                        $html = Storage::disk($view->file->disk)->get($view->file->path);
-                                        return $html;
-                                    });
-                                    $component->state($html);
-                                }
+                                        $disk = $view->file->disk;
+                                        $path = $view->file->path;
+
+                                        return Storage::disk($disk)->exists($path)
+                                            ? Storage::disk($disk)->get($path)
+                                            : '';
+                                    };
+
+                                    return [
+                                        'html' => $getContent($views->get('html')),
+                                        'css' => $getContent($views->get('css')),
+                                        'js' => $getContent($views->get('js')),
+                                        'grapesjs' => [
+                                            'projectData' => $getContent($views->get('grapesjs.projectData')),
+                                            'components' => $getContent($views->get('grapesjs.components')),
+                                            'style' => $getContent($views->get('grapesjs.style')),
+                                        ],
+                                    ];
+                                });
+
+                                $component->state([
+                                    'grapesjs' => [
+                                        'projectData' => $data['grapesjs']['projectData'],
+                                    ]
+                                ]);
                             })
                             ->plugins([
-                                'grapesjs-tailwind',
                                 'gjs-blocks-basic',
-                                'grapesjs-dinvitations'
+                                'grapesjs-component-countdown',
+                                'grapesjs-dinvitations',
+                                'grapesjs-navbar',
+                                'grapesjs-parser-postcss',
+                                'grapesjs-plugin-forms',
+                                'grapesjs-rte-extensions',
+                                'grapesjs-tabs',
+                                'grapesjs-tooltip',
+                                'grapesjs-typed',
+                                'grapesjs-uppy',
+                                // 'grapesjs-tailwind',
+                                // 'grapesjs-preset-webpage',
+                                // 'grapesjs-custom-code',
+                                // 'grapesjs-plugin-toolbox',
+                                // 'grapesjs-style-easing',
+                                // 'grapesjs-undraw',
+                                // 'grapesjs-style-filter',
+                                // 'gjs-quill',
+                                // 'grapesjs-rulers',
+                                // 'grapesjs-style-gpickr',
+                                // 'grapesjs-calendly',
+                                // 'grapesjs-script-editor',
+                                // 'grapesjs-component-code-editor',
+                                // 'grapesjs-plugin-export',
+                                // 'grapesjs-style-bg',
+                                // 'grapesjs-style-border',
                             ])
                             ->id('template_builder')
                     ]),
@@ -115,11 +167,23 @@ class TemplatesResource extends Resource
                 Tables\Columns\Layout\Stack::make([
                     Tables\Columns\ImageColumn::make('preview_url')
                         ->label('Template Preview')
-                        ->disk('minio')
                         ->visibility('private')
                         ->width('100%')
                         ->height('auto')
-                        ->defaultImageUrl('https://placehold.co/640x480'),
+                        ->defaultImageUrl('https://placehold.co/300x300')
+                        ->getStateUsing(function ($record) {
+                            $url = $record->preview_url;
+
+                            if (filter_var($url, FILTER_VALIDATE_URL)) {
+                                return $url;
+                            }
+
+                            if ($url && Storage::disk('minio')->exists($url)) {
+                                return Storage::disk('minio')->temporaryUrl($url, now()->addMinutes(5));
+                            }
+
+                            return null;
+                        }),
                     Tables\Columns\TextColumn::make('name')
                         ->label('Name')
                         ->weight('bold')
@@ -127,12 +191,13 @@ class TemplatesResource extends Resource
                     Tables\Columns\TextColumn::make('slug')
                         ->label('Slug')
                         ->formatStateUsing(function ($record) {
-                            $domain = request()->getHost();
-                            return Str::limit($domain . '/' . $record->slug, 35, '...');
+                            $url = route('templates.show', ['slug' => $record->slug]);
+                            $cleanUrl = Str::after($url, '://');
+                            return Str::limit($cleanUrl, 35, '...');
                         })
                         ->tooltip(function ($record) {
-                            $domain = request()->getHost();
-                            return "{$domain}/{$record->slug}";
+                            $url = route('templates.show', ['slug' => $record->slug]);
+                            return Str::after($url, '://');
                         })
                         ->searchable(),
                 ]),
@@ -149,7 +214,7 @@ class TemplatesResource extends Resource
                 Tables\Actions\ViewAction::make()
                     ->label('Visit link')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn($record) => URL::route('templates.show', ['slug' => $record->slug]))
+                    ->url(fn($record) => route('templates.show', ['slug' => $record->slug]))
                     ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
