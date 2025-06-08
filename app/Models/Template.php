@@ -11,7 +11,6 @@ class Template extends Model
 {
     /** @use HasFactory<\Database\Factories\TemplateFactory> */
     use HasFactory;
-    use SoftDeletes;
     use HasUuids;
 
     protected $keyType = 'string';
