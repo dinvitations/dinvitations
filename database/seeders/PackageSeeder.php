@@ -21,28 +21,28 @@ class PackageSeeder extends Seeder
 
         $packages = [
             [
-                'name' => 'Basic',
+                'name' => Package::NAMES['basic'],
                 'price' => 1999000,
                 'features' => [
                     $features[0],
                 ],
             ],
             [
-                'name' => 'Medium',
+                'name' => Package::NAMES['medium'],
                 'price' => 3999000,
                 'features' => [
                     $features[0], $features[1],
                 ],
             ],
             [
-                'name' => 'Premium',
+                'name' => Package::NAMES['premium'],
                 'price' => 5999000,
                 'features' => [
                     $features[0], $features[2]
                 ],
             ],
             [
-                'name' => 'Luxury',
+                'name' => Package::NAMES['luxury'],
                 'price' => 7999000,
                 'features' => $features,
             ],

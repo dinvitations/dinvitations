@@ -108,5 +108,5 @@ class CreateTemplates extends CreateRecord
         }
     }
 
-    public static string | Alignment $formActionsAlignment = Alignment::Between;
+    public static string|Alignment $formActionsAlignment = Alignment::Between;
 }

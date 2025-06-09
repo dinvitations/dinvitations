@@ -12,32 +12,41 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create or update the admin user
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@example.com'],
+        $admins = [
             [
                 'name' => 'Admin',
-                'password' => Hash::make('p4s5w0rd'),
+                'email' => 'admin@example.com',
+                'password' => 'p4s5w0rd',
                 'email_verified_at' => now(),
-            ]
-        );
+                'roles' => Role::ROLES['manager'],
+            ],
+            [
+                'name' => 'Example EO',
+                'email' => 'eo@example.com',
+                'password' => 'p4s5w0rd',
+                'email_verified_at' => now(),
+                'roles' => Role::ROLES['event_organizer'],
+            ],
+            [
+                'name' => 'Example WO',
+                'email' => 'wo@example.com',
+                'password' => 'p4s5w0rd',
+                'email_verified_at' => now(),
+                'roles' => Role::ROLES['wedding_organizer'],
+            ],
+        ];
 
-        // Create 'admin' role if it doesn't exist
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        foreach ($admins as $admin) {
+            $admin = User::updateOrCreate(
+                ['email' => $admin['email']],
+                [
+                    'name' => $admin['name'],
+                    'password' => Hash::make($admin['password']),
+                    'email_verified_at' => $admin['email_verified_at'],
+                ]
+            );
 
-        // Create or fetch all permissions and assign them to the role
-        $allPermissions = Permission::all();
-
-        if ($allPermissions->isEmpty()) {
-            // If no permissions exist, you can optionally define them here
-            // or let your app auto-discover them via policies/gates.
-            // Example:
-            // Permission::create(['name' => 'manage users']);
+            $admin->syncRoles($admin['roles']);
         }
-
-        $adminRole->syncPermissions(Permission::all());
-
-        // Assign the role to the admin user
-        $admin->assignRole($adminRole);
     }
 }

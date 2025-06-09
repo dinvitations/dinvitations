@@ -30,7 +30,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected static function booted()
     {
         static::deleting(function ($user) {
-            if (! $user->isForceDeleting()) {
+            if (!$user->isForceDeleting()) {
                 $user->email = null;
                 $user->email_verified_at = null;
                 $user->saveQuietly();
@@ -47,6 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'organizer_id',
     ];
 
     /**
@@ -81,7 +82,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return Str::of($this->name)
             ->explode(' ')
-            ->map(fn (string $name) => Str::of($name)->substr(0, 1))
+            ->map(fn(string $name) => Str::of($name)->substr(0, 1))
             ->implode('');
     }
 
@@ -91,7 +92,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return;
         }
 
-        if (! method_exists($this, 'notify')) {
+        if (!method_exists($this, 'notify')) {
             $userClass = $this::class;
 
             throw new Exception("Model [{$userClass}] does not have a [notify()] method.");
@@ -103,8 +104,35 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify($notification);
     }
 
+    public function organizer()
+    {
+        return $this->belongsTo(__CLASS__, 'organizer_id');
+    }
+
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Check whether the user is manager
+     */
+    public function isManager(): bool
+    {
+        return $this->hasRole(Role::ROLES['manager']);
+    }
+
+    /**
+     * Check whether the user is an organizer
+     */
+    public function isOrganizer(string $role = null): bool
+    {
+        if (!empty($role))
+            return $this->hasRole($role);
+
+        return $this->hasAnyRole([
+            Role::ROLES['event_organizer'],
+            Role::ROLES['wedding_organizer'],
+        ]);
     }
 }
