@@ -21,7 +21,10 @@ class CreateAdmins extends CreateRecord
 
     public function getBreadcrumbs(): array
     {
-        return ['Admin', parent::getBreadcrumb()];
+        return [
+            $this->getResource()::getUrl('index') => $this->getResource()::$breadcrumb,
+            null => static::$breadcrumb ?? $this->getBreadcrumb(),
+        ];
     }
 
     protected function handleRecordCreation(array $data): User

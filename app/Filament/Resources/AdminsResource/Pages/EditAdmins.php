@@ -20,7 +20,10 @@ class EditAdmins extends EditRecord
 
     public function getBreadcrumbs(): array
     {
-        return ['Admin', parent::getBreadcrumb()];
+        return [
+            $this->getResource()::getUrl('index') => $this->getResource()::$breadcrumb,
+            null => static::$breadcrumb ?? $this->getBreadcrumb(),
+        ];
     }
 
     public function handleRecordUpdate(Model $record, array $data): Model

@@ -23,6 +23,13 @@ class AdminsResource extends Resource
 
     protected static ?string $navigationLabel = 'Admins';
 
+    public static ?string $breadcrumb = 'Admin';
+
+    public static function getBreadcrumb(): string
+    {
+        return '';
+    }
+
     public static function form(Form $form): Form
     {
         return $form
