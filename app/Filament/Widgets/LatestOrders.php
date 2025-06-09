@@ -15,12 +15,18 @@ use Illuminate\Support\Str;
 
 class LatestOrders extends BaseWidget
 {
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public function table(Table $table): Table
     {
         return $table
-            ->query(Order::query())
+            ->query(
+                Order::query()
+                    ->when(auth()->user()->isOrganizer(), function (Builder $query) {
+                        $query->whereRelation('customer.organizer', 'id', auth()->user()->id);
+                    })
+                    ->with(['customer.organizer', 'package'])
+            )
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No orders yet')
             ->emptyStateDescription('Start by creating an order.')
@@ -30,29 +36,20 @@ class LatestOrders extends BaseWidget
                     ->dateTime('M d, Y')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('customer.name')
+                    ->label('Customer')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('customer.organizer.name')
+                    ->label('Organizer')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn() => auth()->user()->isManager()),
                 TextColumn::make('package.name')
                     ->label('Package')
                     ->formatStateUsing(function ($state) {
                         return ucfirst($state);
                     })
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('customer.name')
-                    ->label('Customer')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->icons([
-                        'heroicon-s-check-circle' => 'active',
-                        'heroicon-o-minus' => 'inactive',
-                    ])
-                    ->colors([
-                        'success' => 'active',
-                        'primary' => 'inactive',
-                    ])
-                    ->formatStateUsing(fn(string $state): string => Str::title($state))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('price')
@@ -66,12 +63,13 @@ class LatestOrders extends BaseWidget
             ->actions([
                 Action::make('open')
                     ->label('Open')
-                    ->url(fn(Order $record): string => OrdersResource::getUrl('edit', ['record' => $record])),
+                    ->url(fn(Order $record): string => OrdersResource::getUrl('edit', ['record' => $record]))
+                    ->visible(fn(Order $order) => auth()->user()->can('view', $order)),
             ])
             ->poll();
     }
-    
-    protected function paginateTableQuery(Builder $query): Paginator | CursorPaginator
+
+    protected function paginateTableQuery(Builder $query): Paginator|CursorPaginator
     {
         return $query->paginate(
             perPage: ($this->getTableRecordsPerPage() === 'all') ? $query->count() : $this->getTableRecordsPerPage(),

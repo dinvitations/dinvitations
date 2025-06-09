@@ -21,14 +21,14 @@ class AdminUserSeeder extends Seeder
                 'roles' => Role::ROLES['manager'],
             ],
             [
-                'name' => 'Example EO',
+                'name' => 'Admin EO',
                 'email' => 'eo@example.com',
                 'password' => 'p4s5w0rd',
                 'email_verified_at' => now(),
                 'roles' => Role::ROLES['event_organizer'],
             ],
             [
-                'name' => 'Example WO',
+                'name' => 'Admin WO',
                 'email' => 'wo@example.com',
                 'password' => 'p4s5w0rd',
                 'email_verified_at' => now(),
@@ -36,17 +36,17 @@ class AdminUserSeeder extends Seeder
             ],
         ];
 
-        foreach ($admins as $admin) {
+        foreach ($admins as $adminData) {
             $admin = User::updateOrCreate(
-                ['email' => $admin['email']],
+                ['email' => $adminData['email']],
                 [
-                    'name' => $admin['name'],
-                    'password' => Hash::make($admin['password']),
-                    'email_verified_at' => $admin['email_verified_at'],
+                    'name' => $adminData['name'],
+                    'password' => Hash::make($adminData['password']),
+                    'email_verified_at' => $adminData['email_verified_at'],
                 ]
             );
 
-            $admin->syncRoles($admin['roles']);
+            $admin->syncRoles($adminData['roles']);
         }
     }
 }

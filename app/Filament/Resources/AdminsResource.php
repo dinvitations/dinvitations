@@ -32,6 +32,16 @@ class AdminsResource extends Resource
         return '';
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return !auth()->user()->role('client');
+    }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->isManager();
+    }
+
     public static function form(Form $form): Form
     {
         return $form

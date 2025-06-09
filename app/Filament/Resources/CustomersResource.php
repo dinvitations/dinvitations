@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PermissionsEnum;
 use App\Filament\Resources\CustomersResource\Pages;
 use App\Models\User;
 use Filament\Forms;
@@ -11,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
@@ -22,7 +24,7 @@ class CustomersResource extends Resource
     protected static ?string $pluralModelLabel = 'Customers';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = ' ';
     protected static ?int $navigationSort = 3;
 
     public static ?string $breadcrumb = 'Customers';
@@ -52,6 +54,9 @@ class CustomersResource extends Resource
                             ->minLength(8)
                             ->revealable()
                             ->helperText('Please enter minimum 8 characters'),
+
+                        Forms\Components\Hidden::make('organizer_id')
+                            ->default(auth()->user()->id),
                     ])
                     ->columns(2)
             ]);
@@ -73,6 +78,12 @@ class CustomersResource extends Resource
                     ->label('Email Address')
                     ->searchable()
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('organizer.name')
+                    ->label('Organizer')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn() => auth()->user()->isManager()),
 
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Last Updated')
@@ -103,7 +114,7 @@ class CustomersResource extends Resource
                             ->title('Sucessfully')
                             ->body('Customer deleted successfully')
                             ->send();
-                        
+
                         $livewire->resetTable();
                     }),
                 Tables\Actions\RestoreAction::make()
@@ -169,6 +180,21 @@ class CustomersResource extends Resource
                         }),
                 ]),
             ]);
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::CREATE_CUSTOMERS);
+    }
+
+    public static function canEdit(Model $model): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::EDIT_CUSTOMERS);
+    }
+
+    public static function canDelete(Model $model): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_CUSTOMERS);
     }
 
     public static function getEloquentQuery(): Builder

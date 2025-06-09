@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\OrdersResource\Pages;
-use App\Filament\Resources\OrdersResource\RelationManagers;
 use App\Models\Order;
 use App\Models\Package;
 use App\Models\User;
@@ -14,14 +13,13 @@ use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Str;
 
 class OrdersResource extends Resource
 {
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = ' ';
     protected static ?int $navigationSort = 2;
 
     public static ?string $breadcrumb = 'Orders';
@@ -31,44 +29,44 @@ class OrdersResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make()
-                ->schema([
-                    Forms\Components\Select::make('user_id')
-                        ->label('Name / Email Address')
-                        ->placeholder('Choose a customer email')
-                        ->required()
-                        ->searchable()
-                        ->getSearchResultsUsing(function (string $search): array {
-                            return User::role('client')
-                                ->where(function ($query) use ($search) {
-                                    $query->where('name', 'ilike', "%{$search}%");
-                                    $query->orWhere('email', 'ilike', "%{$search}%");
-                                })
-                                ->limit(5)
-                                ->get()
-                                ->mapWithKeys(function ($user) {
-                                    return [$user->id => "{$user->name} ({$user->email})"];
-                                })
-                                ->toArray();
-                        })
-                        ->getOptionLabelUsing(function ($value): ?string {
-                            $user = User::role('client')->find($value);
-                            return $user ? "{$user->name} ({$user->email})" : null;
-                        }),
-                    Forms\Components\Select::make('package_id')
-                        ->label('Package')
-                        ->placeholder('- Select a package -')
-                        ->required()
-                        ->options(Package::pluck('name', 'id'))
-                        ->native(false)
-                        ->reactive()
-                        ->afterStateUpdated(function ($state, callable $set) {
-                            $package = Package::find($state);
-                            if ($package) {
-                                $set('price', number_format($package->price, 0, ',', '.'));
-                            }
-                        }),
-                    Forms\Components\TextInput::make('price')
-                        ->mask(RawJs::make(<<<'JS'
+                    ->schema([
+                        Forms\Components\Select::make('user_id')
+                            ->label('Name / Email Address')
+                            ->placeholder('Choose a customer email')
+                            ->required()
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search): array {
+                                return User::role('client')
+                                    ->where(function ($query) use ($search) {
+                                        $query->where('name', 'ilike', "%{$search}%");
+                                        $query->orWhere('email', 'ilike', "%{$search}%");
+                                    })
+                                    ->limit(5)
+                                    ->get()
+                                    ->mapWithKeys(function ($user) {
+                                        return [$user->id => "{$user->name} ({$user->email})"];
+                                    })
+                                    ->toArray();
+                            })
+                            ->getOptionLabelUsing(function ($value): ?string {
+                                $user = User::role('client')->find($value);
+                                return $user ? "{$user->name} ({$user->email})" : null;
+                            }),
+                        Forms\Components\Select::make('package_id')
+                            ->label('Package')
+                            ->placeholder('- Select a package -')
+                            ->required()
+                            ->options(Package::pluck('name', 'id'))
+                            ->native(false)
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $package = Package::find($state);
+                                if ($package) {
+                                    $set('price', number_format($package->price, 0, ',', '.'));
+                                }
+                            }),
+                        Forms\Components\TextInput::make('price')
+                            ->mask(RawJs::make(<<<'JS'
                             $input => {
                                 let number = $input.replace(/\D/g, '');
                                 return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
@@ -122,20 +120,11 @@ class OrdersResource extends Resource
                     ->label('Customer')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->icons([
-                        'heroicon-s-check-circle' => 'active',
-                        'heroicon-o-minus' => 'inactive',
-                    ])
-                    ->colors([
-                        'success' => 'active',
-                        'primary' => 'inactive',
-                    ])
-                    ->formatStateUsing(fn(string $state): string => Str::title($state))
+                Tables\Columns\TextColumn::make('customer.organizer.name')
+                    ->label('Organizer')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn() => auth()->user()->isManager()),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Total Price')
                     ->formatStateUsing(function ($state) {
@@ -156,7 +145,7 @@ class OrdersResource extends Resource
                             ->title('Sucessfully')
                             ->body('Order deleted successfully')
                             ->send();
-                        
+
                         $livewire->resetTable();
                     }),
             ])
@@ -173,7 +162,7 @@ class OrdersResource extends Resource
                                 ->title('Sucessfully')
                                 ->body('Orders deleted successfully')
                                 ->send();
-                            
+
                             $livewire->resetTable();
                         }),
                 ]),

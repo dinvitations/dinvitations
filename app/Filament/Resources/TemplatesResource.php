@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TemplatesResource\Pages;
 use App\Models\Event;
+use App\Models\Role;
 use App\Models\Template;
 use App\Models\TemplateView;
 use App\Support\Constants;
@@ -14,6 +15,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -23,7 +25,7 @@ class TemplatesResource extends Resource
     protected static ?string $model = Template::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = ' ';
     protected static ?int $navigationSort = 1;
 
     public static ?string $breadcrumb = 'Templates';
@@ -235,6 +237,20 @@ class TemplatesResource extends Resource
                         }),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        if (auth()->user()->hasRole(Role::ROLES['wedding_organizer'])) {
+            $query->whereHas('event', function (Builder $query) {
+                $query->where('name', 'ILIKE', '%wedding%')
+                    ->orWhere('name', 'ILIKE', '%nikah%');
+            });
+        }
+
+        return $query;
     }
 
     public static function getPages(): array
