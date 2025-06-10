@@ -6,6 +6,7 @@ use App\Filament\Resources\OrdersResource;
 use App\Filament\Widgets\LatestOrders;
 use App\Filament\Widgets\StatsOverview;
 use Filament\Actions\Action;
+use Filament\Actions\ViewAction;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
@@ -14,11 +15,26 @@ class Dashboard extends BaseDashboard
 
     protected function getHeaderActions(): array
     {
-        return [
-            Action::make('new_order')
-                ->label('New Order')
-                ->url(OrdersResource::getUrl('create')),
-        ];
+        $user = auth()->user();
+
+        if ($user->hasRole('client')) {
+            $actions = [
+                ViewAction::make('scan_qrcode')
+                    ->label('Scan QRCode')
+                    ->color('primary')
+                    ->modalWidth('md')
+                    ->modalHeading('Scan QRCode')
+                    ->modalContent(view('filament.partials.scan-qr-code'))
+            ];
+        } else {
+            $actions = [
+                Action::make('new_order')
+                    ->label('New Order')
+                    ->url(OrdersResource::getUrl('create')),
+            ];
+        }
+
+        return $actions;
     }
 
     public function getWidgets(): array
