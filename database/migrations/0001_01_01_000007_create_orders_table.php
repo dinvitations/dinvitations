@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('user_id')->nullable();
             $table->uuid('package_id')->nullable();
             $table->string('order_number')->unique();
-            $table->enum('status', ['processing', 'delivered', 'closed', 'cancelled'])->index();
+            $table->enum('status', ['active', 'inactive'])->index();
             $table->integer('price')->default(0);
             $table->timestamps();
             $table->softDeletes();

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Invitation;
 use App\Models\Order;
 use App\Models\Package;
 use App\Models\Role;
@@ -29,10 +30,29 @@ class OrderSeeder extends Seeder
 
         // Assign 2 orders per client
         foreach ($clients as $client) {
-            Order::factory()->count(2)->create([
+            $orders = Order::factory()->count(2)->create([
                 'user_id' => $client->id,
                 'package_id' => $packages->random()->id,
+                'status' => 'inactive', // All inactive by default
             ]);
+
+            // Set the latest order to 'active'
+            $latestOrder = $orders->sortByDesc('created_at')->first();
+            $latestOrder->update(['status' => 'active']);
+
+            foreach ($orders as $order) {
+                if ($order->is($latestOrder)) {
+                    // Create minimal invitation for active order
+                    Invitation::factory()->empty()->create([
+                        'order_id' => $order->id,
+                    ]);
+                } else {
+                    // Create full invitation for inactive orders using the factory
+                    Invitation::factory()->create([
+                        'order_id' => $order->id,
+                    ]);
+                }
+            }
         }
     }
 }

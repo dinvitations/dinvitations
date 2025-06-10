@@ -15,12 +15,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('order_id');
             $table->uuid('template_id')->nullable();
-            $table->string('name')->index();
-            $table->string('slug')->unique();
-            $table->timestamp('date_start');
+            $table->string('name')->index()->nullable();
+            $table->string('slug')->unique()->nullable();
+            $table->timestamp('date_start')->nullable();
             $table->timestamp('date_end')->nullable();
             $table->text('whatsapp_message')->nullable();
-            $table->text('location');
+            $table->text('location')->nullable();
             $table->string('location_latlong')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
