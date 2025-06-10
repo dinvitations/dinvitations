@@ -39,9 +39,19 @@ class Dashboard extends BaseDashboard
 
     public function getWidgets(): array
     {
-        return [
-            StatsOverview::class,
-            LatestOrders::class,
-        ];
+        $user = auth()->user();
+
+        if ($user->hasRole('client')) {
+            $widgets = [
+                StatsOverview::class,
+            ];
+        } else {
+            $widgets = [
+                StatsOverview::class,
+                LatestOrders::class,
+            ];
+        }
+
+        return $widgets;
     }
 }
