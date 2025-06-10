@@ -17,7 +17,7 @@ return new class extends Migration
             $table->uuid('package_id')->nullable();
             $table->string('order_number')->unique();
             $table->enum('status', ['active', 'inactive'])->index();
-            $table->decimal('price', 10, 2)->default(0);
+            $table->integer('price')->default(0);
             $table->timestamps();
             $table->softDeletes();
 

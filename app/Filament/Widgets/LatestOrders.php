@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\OrdersResource;
 use App\Models\Order;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
@@ -65,7 +66,7 @@ class LatestOrders extends BaseWidget
             ->actions([
                 Action::make('open')
                     ->label('Open')
-                    // ->url(fn(Order $record): string => route('filament.web.resources.orders.view', $record->id)),
+                    ->url(fn(Order $record): string => OrdersResource::getUrl('edit', ['record' => $record])),
             ])
             ->poll();
     }

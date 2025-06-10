@@ -14,16 +14,20 @@ return new class extends Migration
         Schema::create('template_views', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('template_id')->index();
-            $table->enum('type', ['html', 'css']);
-            $table->string('filepath');
-            $table->string('filename');
+            $table->uuid('file_id')->nullable();
+            $table->enum('type', ['html', 'css', 'js', 'json'])->index();
+            $table->longText('content')->nullable();
             $table->timestamps();
-            $table->softDeletes();
 
             $table->foreign('template_id')
-                  ->references('id')->on('templates')
-                  ->onUpdate('cascade')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('templates')
+                ->onDelete('cascade');
+
+            $table->foreign('file_id')
+                ->references('id')
+                ->on('files')
+                ->onDelete('set null');
         });
     }
 
