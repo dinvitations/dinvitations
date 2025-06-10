@@ -8,6 +8,7 @@ use App\Models\Package;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 
@@ -16,7 +17,7 @@ class PackagesResource extends Resource
     protected static ?string $model = Package::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-inbox';
-    protected static ?string $navigationLabel = 'Packages';
+    protected static ?string $navigationLabel = 'Package Categories';
     protected static ?string $navigationGroup = 'Manage';
     protected static ?int $navigationSort = 2;
 
@@ -33,20 +34,36 @@ class PackagesResource extends Resource
                         Forms\Components\TextInput::make('price')
                             ->numeric()
                             ->minValue(0)
-                            ->required(),
-
-                        Forms\Components\TagsInput::make('features')
-                            ->label('Features')
                             ->required()
-                            ->color('success')
-                            ->suggestions(
-                                Feature::where('status', 'active')
+                            ->mask(RawJs::make(<<<'JS'
+                                $input => {
+                                    let number = $input.replace(/\D/g, '');
+                                    return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                }
+                            JS))
+                            ->stripCharacters('.'),
+
+                        Forms\Components\Select::make('features')
+                            ->label('Features')
+                            ->disabled()
+                            ->multiple()
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->native(false)
+                            ->reactive()
+                            ->options(function ($get) {
+                                return Feature::query()
+                                    ->active()
+                                    ->whereNotIn('name', $get('features') ?? [])
                                     ->orderBy('name')
-                                    ->pluck('name')->toArray()
-                            )
+                                    ->limit(5)
+                                    ->pluck('name', 'id')
+                                    ->toArray();
+                            })
                             ->placeholder('Enter the name')
                             ->helperText('Choose one or more features to include in this package.')
-                            ->columnSpan(2),
+                            ->columnSpanFull(),
                     ])
                     ->columns(2),
             ]);
@@ -71,18 +88,9 @@ class PackagesResource extends Resource
             ])
             ->defaultSort('updated_at', 'desc')
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
-                    ->action(fn($record) => $record->forceDelete())
-                    ->modalHeading('Delete')
-                    ->modalSubheading('Are you sure you want to delete?')
-                    ->modalButton('Delete'),
+                Tables\Actions\EditAction::make()
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
-            ])
+            ->bulkActions([])
             ->emptyStateHeading('No packages yet')
             ->emptyStateDescription('Start by adding your first one!')
             ->defaultPaginationPageOption(5);
@@ -92,7 +100,6 @@ class PackagesResource extends Resource
     {
         return [
             'index' => Pages\ListPackages::route('/'),
-            'create' => Pages\CreatePackages::route('/create'),
             'edit' => Pages\EditPackages::route('/{record}/edit'),
         ];
     }

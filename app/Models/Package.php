@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Package extends Model
@@ -23,6 +23,11 @@ class Package extends Model
         'description',
     ];
 
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 'active');
+    }
+
     public function templates()
     {
         return $this->hasMany(Template::class);
@@ -31,9 +36,7 @@ class Package extends Model
     public function features()
     {
         return $this->belongsToMany(Feature::class)
-            ->using(new class extends Pivot {
-            use HasUuids;
-            })
+            ->using(FeaturePackage::class)
             ->withTimestamps();
     }
 }
