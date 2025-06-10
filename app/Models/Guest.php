@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Template extends Model
+class Guest extends Model
 {
-    /** @use HasFactory<\Database\Factories\TemplateFactory> */
+    /** @use HasFactory<\Database\Factories\GuestFactory> */
     use HasFactory;
     use SoftDeletes;
     use HasUuids;
@@ -18,19 +18,19 @@ class Template extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'user_id',
         'name',
-        'slug',
-        'package_id',
-        'event_id',
+        'phone_number',
+        'type_default',
     ];
 
-    public function package()
+    public function user()
     {
-        return $this->belongsTo(Package::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function event()
+    public function invitationGuests()
     {
-        return $this->belongsTo(Event::class);
+        return $this->hasMany(InvitationGuest::class);
     }
 }
