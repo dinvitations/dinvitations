@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             // ClientUserSeeder::class,
             FeatureSeeder::class,
+            EventSeeder::class,
             PackageSeeder::class,
         ]);
     }
