@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\OrdersResource;
+use App\Filament\Widgets\LastAttendance;
 use App\Filament\Widgets\LatestOrders;
 use App\Filament\Widgets\StatsOverview;
 use Filament\Actions\Action;
@@ -44,6 +45,7 @@ class Dashboard extends BaseDashboard
         if ($user->hasRole('client')) {
             $widgets = [
                 StatsOverview::class,
+                LastAttendance::class,
             ];
         } else {
             $widgets = [
