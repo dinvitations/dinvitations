@@ -63,7 +63,8 @@ class LastAttendance extends BaseWidget
                         ]);
                     }),
             ])
-            ->defaultSort('attended_at', 'desc');
+            ->defaultSort('attended_at', 'desc')
+            ->poll();
     }
 
     protected function paginateTableQuery(Builder $query): Paginator
