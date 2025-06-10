@@ -13,4 +13,8 @@ class TemplateBuilder extends Page
 
     protected static string $view = 'filament.pages.templates.template-builder';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return !auth()->user()->role('client');
+    }
 }
