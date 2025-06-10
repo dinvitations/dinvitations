@@ -39,15 +39,6 @@ class File extends Model
         return $this->morphTo();
     }
 
-    public function getUrlAttribute(): ?string
-    {
-        if ($this->visibility === 'public' && Storage::disk($this->disk)->exists($this->path)) {
-            return Storage::disk($this->disk)->url($this->path);
-        }
-
-        return null;
-    }
-
     public function getSizeForHumansAttribute(): string
     {
         if (!$this->size) return '0 B';

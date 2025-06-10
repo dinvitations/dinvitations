@@ -69,17 +69,6 @@ class TemplateView extends Model
         return $this->belongsTo(File::class);
     }
 
-    public function getUrlAttribute(): ?string
-    {
-        return $this->file ?
-            Storage::disk($this->file->disk)
-                ->temporaryUrl(
-                    $this->file->path,
-                    now()->addMinutes(5)
-                )
-            : null;
-    } 
-
     public static function getTypes(): array
     {
         $flat = [];
