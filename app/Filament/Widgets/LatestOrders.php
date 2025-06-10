@@ -66,7 +66,8 @@ class LatestOrders extends BaseWidget
                 Action::make('open')
                     ->label('Open')
                     // ->url(fn(Order $record): string => route('filament.web.resources.orders.view', $record->id)),
-            ]);
+            ])
+            ->poll();
     }
     
     protected function paginateTableQuery(Builder $query): Paginator | CursorPaginator
