@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Exports\GuestBookExport;
 use App\Filament\Resources\HistoryOrdersResource\Pages;
 use App\Models\Order;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
@@ -79,6 +80,14 @@ class HistoryOrdersResource extends Resource
                                     new GuestBookExport($invitation->id),
                                     'guestbook_'.$record->order_number.'.xlsx'
                                 );
+                            })
+                            ->after(function ($record) {
+                                Notification::make()
+                                    ->success()
+                                    ->icon('heroicon-o-check-circle')
+                                    ->title('Sucessfully')
+                                    ->body('Guest Book - '.$record->order_number.' downloaded successfully')
+                                    ->sendToDatabase(auth()->user(), isEventDispatched: true);
                             })
                     )
             ])
