@@ -23,6 +23,8 @@ class AdminsResource extends Resource
 
     protected static ?string $navigationLabel = 'Admins';
 
+    protected static ?int $navigationSort = 3;
+
     public static ?string $breadcrumb = 'Admin';
 
     public static function getBreadcrumb(): string
