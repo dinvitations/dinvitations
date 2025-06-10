@@ -54,7 +54,7 @@ class Order extends Model
         return $this->belongsTo(Package::class);
     }
 
-    public function invitations()
+    public function invitation()
     {
         return $this->hasOne(Invitation::class);
     }

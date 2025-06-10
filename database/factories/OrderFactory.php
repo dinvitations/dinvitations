@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Order;
 use App\Models\Package;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,7 +23,7 @@ class OrderFactory extends Factory
         $package = Package::inRandomOrder()->first() ?? Package::factory()->create();
 
         return [
-            'order_number' => Str::upper(Str::random(10)),
+            'order_number' => Order::generateOrderNumber(),
             'status' => fake()->randomElement(['processing', 'delivered', 'closed', 'cancelled']),
             'price' => $package->price,
             'user_id' => User::factory(),
