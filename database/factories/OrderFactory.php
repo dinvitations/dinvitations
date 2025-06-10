@@ -23,7 +23,7 @@ class OrderFactory extends Factory
 
         return [
             'order_number' => Str::upper(Str::random(10)),
-            'status' => fake()->randomElement(['processing', 'delivered', 'closed', 'cancelled']),
+            'status' => 'inactive',
             'price' => $package->price,
             'user_id' => User::factory(),
             'package_id' => $package->id,
