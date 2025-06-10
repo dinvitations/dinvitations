@@ -688,12 +688,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/dinvitations/filament-grapesjs-v3.git",
-                "reference": "3f22afaf6f19f3a49fcb88fb93723efe333e1733"
+                "reference": "b4d7305379e197c67728430be3e4f197dcc45b99"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dinvitations/filament-grapesjs-v3/zipball/3f22afaf6f19f3a49fcb88fb93723efe333e1733",
-                "reference": "3f22afaf6f19f3a49fcb88fb93723efe333e1733",
+                "url": "https://api.github.com/repos/dinvitations/filament-grapesjs-v3/zipball/b4d7305379e197c67728430be3e4f197dcc45b99",
+                "reference": "b4d7305379e197c67728430be3e4f197dcc45b99",
                 "shasum": ""
             },
             "require": {
@@ -773,7 +773,7 @@
                 "issues": "https://github.com/dotswan/filament-grapesjs-v3/issues",
                 "source": "https://github.com/dotswan/filament-grapesjs-v3"
             },
-            "time": "2025-06-06T12:03:20+00:00"
+            "time": "2025-06-09T00:46:30+00:00"
         },
         {
             "name": "doctrine/dbal",
