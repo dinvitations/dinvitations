@@ -7,10 +7,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "dotswan/filament-grapesjs-v3": "^1.1",
+        "dinvitations/filament-grapesjs-v3": "dev-main",
         "filament/filament": "^3.3",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "league/flysystem-aws-s3-v3": "^3.0",
         "livewire/flux": "^2.1.1",
         "livewire/volt": "^1.7.0",
         "spatie/laravel-permission": "^6.17"
@@ -38,6 +39,12 @@
             "Tests\\": "tests/"
         }
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/dinvitations/filament-grapesjs-v3"
+        }
+    ],
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
@@ -80,6 +87,6 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }
