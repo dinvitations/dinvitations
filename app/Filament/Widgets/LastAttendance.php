@@ -19,6 +19,13 @@ class LastAttendance extends BaseWidget
         return $table
             ->query(
                 InvitationGuest::query()
+                    ->whereHas('invitation', function ($query) {
+                        $query->whereNotNull('published_at')
+                            ->whereHas('order', function ($subQuery) {
+                                $subQuery->where('status', 'active');
+                                $subQuery->where('user_id', auth()->user()->id);
+                            }, '=', 1);
+                    })
                     ->whereNotNull('attended_at')
                     ->latest('attended_at')
             )

@@ -16,15 +16,26 @@ class StatsOverview extends BaseWidget
         $user = auth()->user();
 
         if ($user->hasRole('client')) {
-            $totalInvitedGuests = InvitationGuest::whereHas('invitation.order', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })->count();
+            $totalInvitedGuests = InvitationGuest::query()
+                ->whereHas('invitation', function ($query) use ($user) {
+                    $query->whereNotNull('published_at')
+                        ->whereHas('order', function ($subQuery) use ($user) {
+                            $subQuery->where('status', 'active');
+                            $subQuery->where('user_id', $user->id);
+                        }, '=', 1);
+                })
+                ->count();
 
-            $totalAttendingGuests = InvitationGuest::whereHas('invitation.order', function ($query) use ($user) {
-                $query->where('user_id', $user->id);
-            })
-            ->whereNotNull('attended_at')
-            ->count();
+            $totalAttendingGuests = InvitationGuest::query()
+                ->whereHas('invitation', function ($query) use ($user) {
+                    $query->whereNotNull('published_at')
+                        ->whereHas('order', function ($subQuery) use ($user) {
+                            $subQuery->where('status', 'active');
+                            $subQuery->where('user_id', $user->id);
+                        }, '=', 1);
+                })
+                ->whereNotNull('attended_at')
+                ->count();
 
             $attendanceRate = percent($totalAttendingGuests, $totalInvitedGuests);
 
