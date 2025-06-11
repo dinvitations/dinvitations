@@ -11,7 +11,6 @@ class Template extends Model
 {
     /** @use HasFactory<\Database\Factories\TemplateFactory> */
     use HasFactory;
-    use SoftDeletes;
     use HasUuids;
 
     protected $keyType = 'string';
@@ -22,6 +21,7 @@ class Template extends Model
         'slug',
         'package_id',
         'event_id',
+        'preview_url'
     ];
 
     public function package()
@@ -32,5 +32,10 @@ class Template extends Model
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function views()
+    {
+        return $this->hasMany(TemplateView::class);
     }
 }

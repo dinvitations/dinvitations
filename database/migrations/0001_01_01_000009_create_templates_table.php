@@ -17,8 +17,8 @@ return new class extends Migration
             $table->uuid('event_id')->nullable();
             $table->string('name')->index();
             $table->string('slug')->unique();
+            $table->string('preview_url')->nullable();
             $table->timestamps();
-            $table->softDeletes();
 
             $table->foreign('package_id')
                   ->references('id')->on('packages')

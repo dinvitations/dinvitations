@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DashboardSeeder extends Seeder
 {
@@ -27,12 +28,14 @@ class DashboardSeeder extends Seeder
             $user->assignRole('client');
         });
 
-        // Assign 2 orders per client
-        foreach ($clients as $client) {
-            Order::factory()->count(2)->create([
-                'user_id' => $client->id,
-                'package_id' => $packages->random()->id,
-            ]);
-        }
+        DB::transaction(function () use ($clients, $packages) {
+            foreach ($clients as $client) {
+                Order::factory()->count(2)->create([
+                    'user_id' => $client->id,
+                    'package_id' => $packages->random()->id,
+                ]);
+            }
+        });
+
     }
 }
