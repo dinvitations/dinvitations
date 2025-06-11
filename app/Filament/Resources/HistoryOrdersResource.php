@@ -98,7 +98,7 @@ class HistoryOrdersResource extends Resource
     {
         return parent::getEloquentQuery()
             ->whereHas('invitation')
-            ->where('status', 'closed');
+            ->where('status', 'inactive');
     }
 
     public static function getPages(): array
