@@ -37,7 +37,8 @@ class AdminPanelProvider extends PanelProvider
                 'telescope' => MenuItem::make()
                     ->label('Telescope')
                     ->icon('heroicon-o-bug-ant')
-                    ->url('telescope'),
+                    ->url('telescope')
+                    ->visible(in_array(config('app.env'), ['local', 'development'])),
             ])
             ->darkMode(false)
             ->viteTheme('resources/css/filament/web/theme.css')

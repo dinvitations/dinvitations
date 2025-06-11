@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AdminsResource\Pages;
+use App\Models\Role;
 use App\Models\User;
 use Filament\Forms\Form;
 use Filament\Forms;
@@ -10,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Str;
 
 class AdminsResource extends Resource
 {
@@ -23,6 +25,13 @@ class AdminsResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static ?string $breadcrumb = 'Admin';
+
+    public static function getBreadcrumb(): string
+    {
+        return '';
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -31,13 +40,13 @@ class AdminsResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('name')
                             ->label('Name')
-                            ->placeholder('Masukkan nama Admin')
+                            ->placeholder('Enter the name')
                             ->required(),
 
                         Forms\Components\TextInput::make('email')
                             ->email()
                             ->label('Email Address')
-                            ->placeholder('Cth: example@mail.com')
+                            ->placeholder('Ex: example@mail.com')
                             ->required()
                             ->unique('users', 'email', ignoreRecord: true),
 
@@ -45,11 +54,26 @@ class AdminsResource extends Resource
                             ->password()
                             ->revealable()
                             ->label(fn(string $context) => $context === 'create' ? 'Password' : 'New Password')
-                            ->placeholder('Masukkan password')
+                            ->placeholder(fn(string $context) => $context === 'create' ? 'Enter password' : 'Enter new password')
                             ->dehydrated(fn($state) => filled($state))
                             ->required(fn(string $context): bool => $context === 'create')
                             ->minLength(8)
                             ->helperText('Please enter minimum 8 characters'),
+
+                        Forms\Components\Select::make('role')
+                            ->label('Role')
+                            ->required()
+                            ->relationship('roles', 'name')
+                            ->options(
+                                Role::query()
+                                    ->whereIn('name', ['manager', 'event_organizer', 'wedding_organizer'])
+                                    ->pluck('name', 'id')
+                                    ->map(fn($name) => Str::headline($name))
+                                    ->toArray()
+                            )
+                            ->placeholder('Choose the role')
+                            ->searchable()
+                            ->reactive()
                     ])
                     ->columns(2)
             ]);
@@ -64,6 +88,11 @@ class AdminsResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email Address')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('roles.name')
+                    ->formatStateUsing(fn($state) => Str::headline($state ?? '-'))
+                    ->label('Role')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
@@ -101,6 +130,6 @@ class AdminsResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->role('admin');
+        return parent::getEloquentQuery()->role(['manager', 'event_organizer', 'wedding_organizer']);
     }
 }

@@ -1,39 +1,24 @@
 <?php
 
-namespace App\Filament\Resources\AdminsResource\Pages;
+namespace App\Filament\Resources\EventResource\Pages;
 
-use App\Filament\Resources\AdminsResource;
-use App\Models\User;
-use DB;
+use App\Filament\Resources\EventResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Alignment;
 
-class CreateAdmins extends CreateRecord
+class CreateEvent extends CreateRecord
 {
-    protected static string $resource = AdminsResource::class;
+    protected static string $resource = EventResource::class;
 
-    protected static ?string $title = 'Create Admin';
-
+    protected static ?string $title = "Create Event Category";
     protected static bool $canCreateAnother = false;
 
     public static string|Alignment $formActionsAlignment = Alignment::Between;
 
     public function getBreadcrumbs(): array
     {
-        return [
-            $this->getResource()::getUrl('index') => $this->getResource()::$breadcrumb,
-            null => static::$breadcrumb ?? $this->getBreadcrumb(),
-        ];
-    }
-
-    protected function handleRecordCreation(array $data): User
-    {
-        return DB::transaction(function () use ($data) {
-            $user = static::getModel()::create($data);
-            $user->assignRole($data['role']);
-            return $user;
-        });
+        return ['Event Categories', parent::getBreadcrumb()];
     }
 
     protected function getRedirectUrl(): string
@@ -47,7 +32,7 @@ class CreateAdmins extends CreateRecord
             ->success()
             ->icon('heroicon-s-check-circle')
             ->title('Successfully')
-            ->body('Admin placed successfully');
+            ->body('Event Category placed successfully');
     }
 
     protected function getFormActions(): array

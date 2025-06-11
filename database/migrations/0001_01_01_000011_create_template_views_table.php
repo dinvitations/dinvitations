@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('template_id')->index();
             $table->uuid('file_id')->nullable();
-            $table->enum('type', ['html', 'css', 'js', 'json'])->index();
+            $table->string('type')->index();
             $table->longText('content')->nullable();
             $table->timestamps();
 

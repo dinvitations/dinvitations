@@ -31,7 +31,7 @@ class TemplateFactory extends Factory
             'slug' => Str::slug($name),
             'package_id' => $package?->id,
             'event_id' => $event->id,
-            // 'preview_url' => fake()->imageUrl(1080, 1080, 'invitations')
+            'preview_url' => fake()->imageUrl(640, 480, 'invitations')
         ];
     }
 }

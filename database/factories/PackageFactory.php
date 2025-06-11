@@ -18,7 +18,7 @@ class PackageFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => Str::title(fake()->word() . ' Package'),
+            'name' => Str::title(fake()->unique()->word() . ' Package'),
             'price' => fake()->numberBetween(100, 9999) * 1000,
             'description' => fake()->sentence(),
         ];
