@@ -32,4 +32,19 @@ class InvitationFactory extends Factory
             'published_at' => now(),
         ];
     }
+
+    public function empty(): Factory
+    {
+        return $this->state([
+            'template_id' => null,
+            'name' => null,
+            'slug' => null,
+            'date_start' => null,
+            'date_end' => null,
+            'whatsapp_message' => null,
+            'location' => null,
+            'location_latlong' => null,
+            'published_at' => null,
+        ]);
+    }
 }

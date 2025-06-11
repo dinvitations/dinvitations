@@ -17,23 +17,30 @@ class DashboardClientSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create or get a client user
+        // Use an existing client or create a new one with the 'client' role
         $client = User::role('client')->inRandomOrder()->first() ?? User::factory()->client()->create();
 
-        // Create orders for the client
+        // Create a random number of orders (e.g. 3–5), all inactive by default
         $orders = Order::factory()
-            ->count(3)
-            ->create(['user_id' => $client->id]);
+            ->count(rand(3, 5))
+            ->create([
+                'user_id' => $client->id,
+                'status' => 'inactive',
+            ]);
+
+        // Get the latest order by created_at and set it as active
+        $latestOrder = $orders->sortByDesc('created_at')->first();
+        $latestOrder->update(['status' => 'active']);
 
         $invitations = collect();
-        $guests = collect();
 
-        // For each order, create an invitation
         foreach ($orders as $order) {
-            $invitation = Invitation::factory()
-                ->create(['order_id' => $order->id]);
+            $invitation = Invitation::factory()->create([
+                'order_id' => $order->id,
+                'published_at' => now(),
+            ]);
 
-            $invitations = $invitations->push($invitation);
+            $invitations->push($invitation);
         }
 
         // Create 20–30 guests for the client
@@ -41,7 +48,7 @@ class DashboardClientSeeder extends Seeder
             ->count(rand(20, 30))
             ->create(['user_id' => $client->id]);
 
-        // For each invitation, attach 10–15 random guests
+        // Attach 10–15 guests to each invitation
         foreach ($invitations as $invitation) {
             $randomGuests = $guests->random(rand(10, 15));
             foreach ($randomGuests as $guest) {
@@ -51,6 +58,5 @@ class DashboardClientSeeder extends Seeder
                 ]);
             }
         }
-
     }
 }
