@@ -21,11 +21,11 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         $package = Package::inRandomOrder()->first() ?? Package::factory()->create();
-        $user = User::role('client')->inRandomOrder()->first() ?? User::factory()->create();
+        $user = User::role('client')->inRandomOrder()->first() ?? User::factory()->client()->create();
 
         return [
-            'order_number' => Str::upper(Str::random(10)),
-            'status' => fake()->randomElement(Order::STATUSES),
+            'order_number' => Order::generateOrderNumber(),
+            'status' => 'inactive',
             'price' => $package->price,
             'user_id' => $user->id,
             'package_id' => $package->id,

@@ -12,9 +12,9 @@ class ListOrders extends ListRecords
 
     protected static ?string $breadcrumb = 'List';
 
-    public function getBreadcrumb(): string
+    public function getBreadcrumbs(): array
     {
-        return '';
+        return [];
     }
 
     protected function getHeaderActions(): array
