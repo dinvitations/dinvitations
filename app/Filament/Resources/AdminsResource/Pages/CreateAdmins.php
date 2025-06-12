@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AdminsResource\Pages;
 
 use App\Filament\Resources\AdminsResource;
 use App\Models\User;
+use DB;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Alignment;
@@ -16,18 +17,23 @@ class CreateAdmins extends CreateRecord
 
     protected static bool $canCreateAnother = false;
 
-    public static string | Alignment $formActionsAlignment = Alignment::Between;
+    public static string|Alignment $formActionsAlignment = Alignment::Between;
 
     public function getBreadcrumbs(): array
     {
-        return ['Admin', parent::getBreadcrumb()];
+        return [
+            $this->getResource()::getUrl('index') => $this->getResource()::$breadcrumb,
+            null => static::$breadcrumb ?? $this->getBreadcrumb(),
+        ];
     }
 
     protected function handleRecordCreation(array $data): User
     {
-        $user = static::getModel()::create($data);
-        $user->assignRole('admin');
-        return $user;
+        return DB::transaction(function () use ($data) {
+            $user = static::getModel()::create($data);
+            $user->assignRole($data['role']);
+            return $user;
+        });
     }
 
     protected function getRedirectUrl(): string

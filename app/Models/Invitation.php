@@ -45,4 +45,9 @@ class Invitation extends Model
     {
         return $this->belongsTo(Template::class);
     }
+
+    public function guests()
+    {
+        return $this->hasMany(InvitationGuest::class);
+    }
 }
