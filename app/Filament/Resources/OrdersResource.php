@@ -87,14 +87,16 @@ class OrdersResource extends Resource
                             return $context === 'edit' ? 'To change prices, go to the package menu' : null;
                         }),
                     Forms\Components\ToggleButtons::make('status')
-                        ->required()
+                        ->dehydrated(false)
+                        ->disabled()
+                        ->default('active')
                         ->options([
-                            'processing' => 'Inactive',
-                            'delivered' => 'Active',
+                            'inactive' => 'Inactive',
+                            'active' => 'Active',
                         ])
                         ->icons([
-                            'processing' => 'heroicon-o-minus',
-                            'delivered' => 'heroicon-s-check-circle',
+                            'inactive' => 'heroicon-o-minus',
+                            'active' => 'heroicon-s-check-circle',
                         ])
                         ->inline(),
                 ])
@@ -128,16 +130,15 @@ class OrdersResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->icon(
-                        fn(string $state): string => $state === 'delivered'
-                            ? 'heroicon-s-check-circle'
-                            : 'heroicon-o-minus'
-                    )
-                    ->colors([
-                        'success' => 'delivered',
-                        'primary' => ['processing', 'cancelled'],
+                    ->icons([
+                        'heroicon-s-check-circle' => 'active',
+                        'heroicon-o-minus' => 'inactive',
                     ])
-                    ->formatStateUsing(fn(string $state): string => $state === 'delivered' ? 'Active' : 'Inactive')
+                    ->colors([
+                        'success' => 'active',
+                        'primary' => 'inactive',
+                    ])
+                    ->formatStateUsing(fn(string $state): string => Str::title($state))
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('price')
