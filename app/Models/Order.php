@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Dyrynda\Database\Support\CascadeSoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,7 @@ class Order extends Model
     /** @use HasFactory<\Database\Factories\OrderFactory> */
     use HasFactory;
     use SoftDeletes;
+    use CascadeSoftDeletes;
     use HasUuids;
 
     public const STATUSES = [
@@ -21,7 +23,6 @@ class Order extends Model
         'closed',
         'cancelled'
     ];
-
 
     protected $keyType = 'string';
     public $incrementing = false;
@@ -33,6 +34,8 @@ class Order extends Model
         'status',
         'price',
     ];
+
+    protected $cascadeDeletes = ['invitation'];
     
     protected static function boot()
     {
