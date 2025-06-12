@@ -27,9 +27,9 @@ class CustomersResource extends Resource
 
     public static ?string $breadcrumb = 'Customers';
 
-    public static function getBreadcrumb(): string
+    public static function shouldRegisterNavigation(): bool
     {
-        return '';
+        return !auth()->user()->role('client');
     }
 
     public static function form(Form $form): Form

@@ -6,8 +6,8 @@ use App\Models\Order;
 use App\Models\Package;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DashboardSeeder extends Seeder
 {
@@ -29,10 +29,15 @@ class DashboardSeeder extends Seeder
 
         // Assign 2 orders per client
         foreach ($clients as $client) {
-            Order::factory()->count(2)->create([
+            $orders = Order::factory()->count(2)->create([
                 'user_id' => $client->id,
                 'package_id' => $packages->random()->id,
+                'status' => 'inactive', // Default to inactive
             ]);
+
+            // Set the latest order (by created_at) to 'active'
+            $latestOrder = $orders->sortByDesc('created_at')->first();
+            $latestOrder->update(['status' => 'active']);
         }
     }
 }

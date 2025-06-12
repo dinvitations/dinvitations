@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
@@ -13,6 +14,14 @@ class Order extends Model
     use HasFactory;
     use SoftDeletes;
     use HasUuids;
+
+    public const STATUSES = [
+        'processing',
+        'delivered',
+        'closed',
+        'cancelled'
+    ];
+
 
     protected $keyType = 'string';
     public $incrementing = false;
@@ -24,6 +33,24 @@ class Order extends Model
         'status',
         'price',
     ];
+    
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            if (empty($order->order_number)) {
+                $order->order_number = self::generateOrderNumber();
+            }
+        });
+    }
+
+    protected static function generateOrderNumber()
+    {
+        $date = now()->format('Ymd');
+        $random = Str::upper(Str::random(6));
+        return "ORD-{$date}-{$random}";
+    }
 
     public function customer()
     {
@@ -33,5 +60,10 @@ class Order extends Model
     public function package()
     {
         return $this->belongsTo(Package::class);
+    }
+
+    public function invitation()
+    {
+        return $this->hasOne(Invitation::class);
     }
 }
