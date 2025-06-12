@@ -99,7 +99,7 @@ class CustomersResource extends Resource
                     ->after(function ($livewire) {
                         Notification::make()
                             ->success()
-                            ->icon('heroicon-o-check-circle')
+                            ->icon('heroicon-s-check-circle')
                             ->title('Sucessfully')
                             ->body('Customer deleted successfully')
                             ->send();
@@ -118,7 +118,7 @@ class CustomersResource extends Resource
                     ->after(function ($record) {
                         Notification::make()
                             ->success()
-                            ->icon('heroicon-o-check-circle')
+                            ->icon('heroicon-s-check-circle')
                             ->title('Sucessfully')
                             ->body('Customer restored successfully')
                             ->send();
@@ -141,7 +141,7 @@ class CustomersResource extends Resource
                         ->after(function ($livewire) {
                             Notification::make()
                                 ->success()
-                                ->icon('heroicon-o-check-circle')
+                                ->icon('heroicon-s-check-circle')
                                 ->title('Sucessfully')
                                 ->body('Customers deleted successfully')
                                 ->send();
@@ -160,7 +160,7 @@ class CustomersResource extends Resource
                         ->after(function ($livewire) {
                             Notification::make()
                                 ->success()
-                                ->icon('heroicon-o-check-circle')
+                                ->icon('heroicon-s-check-circle')
                                 ->title('Sucessfully')
                                 ->body('Customers restored successfully')
                                 ->send();

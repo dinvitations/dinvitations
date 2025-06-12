@@ -7,6 +7,7 @@ use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Alignment;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class EditCustomers extends EditRecord
 {
@@ -18,6 +19,21 @@ class EditCustomers extends EditRecord
             $this->getResource()::getUrl('index') => $this->getResource()::$breadcrumb,
             null => static::$breadcrumb ?? $this->getBreadcrumb(),
         ];
+    }
+
+    protected function beforeSave(): void
+    {
+        if ($this->record instanceof MustVerifyEmail && $this->record->email !== $this->data['email']) {
+            $this->record->email_verified_at = null;
+            $this->record->save();
+        }
+    }
+
+    protected function afterSave(): void
+    {
+        if ($this->record instanceof MustVerifyEmail && !$this->record->hasVerifiedEmail()) {
+            $this->record->sendEmailVerificationNotification();
+        }
     }
 
     protected function getSavedNotification(): ?Notification
