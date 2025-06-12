@@ -17,6 +17,7 @@ class ClientUserSeeder extends Seeder
             [
                 'name' => 'Restu Edo Setiaji',
                 'password' => Hash::make('Edo998877!'),
+                'email_verified_at' => now(),
             ]
         );
 
