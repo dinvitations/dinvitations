@@ -52,7 +52,6 @@ class TemplatesResource extends Resource
                             ->native(false),
                         Forms\Components\TextInput::make('slug')
                             ->maxLength(255)
-                            ->notIn(Constants::get('MENU', 'slug'))
                             ->disabled()
                             ->dehydrated(),
                         Forms\Components\FileUpload::make('preview_url')
