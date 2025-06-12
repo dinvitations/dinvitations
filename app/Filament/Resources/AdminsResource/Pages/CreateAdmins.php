@@ -32,6 +32,7 @@ class CreateAdmins extends CreateRecord
         return DB::transaction(function () use ($data) {
             $user = static::getModel()::create($data);
             $user->assignRole($data['role']);
+            $user->markEmailAsVerified();
             return $user;
         });
     }
