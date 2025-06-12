@@ -6,6 +6,7 @@ use App\Filament\Resources\CustomersResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Alignment;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class CreateCustomers extends CreateRecord
 {
@@ -26,6 +27,10 @@ class CreateCustomers extends CreateRecord
     {
         if ($this->creatingClientRole && $this->record) {
             $this->record->assignRole('client');
+        }
+
+        if ($this->record instanceof MustVerifyEmail && !$this->record->hasVerifiedEmail()) {
+            $this->record->sendEmailVerificationNotification();
         }
     }
     
