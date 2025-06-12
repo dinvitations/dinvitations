@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PermissionsEnum;
 use App\Filament\Resources\OrdersResource\Pages;
 use App\Models\Order;
 use App\Models\Package;
@@ -23,6 +24,11 @@ class OrdersResource extends Resource
     protected static ?int $navigationSort = 2;
 
     public static ?string $breadcrumb = 'Orders';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can(PermissionsEnum::MANAGE_ORDERS);
+    }
 
     public static function form(Form $form): Form
     {

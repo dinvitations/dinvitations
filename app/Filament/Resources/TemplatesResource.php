@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PermissionsEnum;
 use App\Filament\Resources\TemplatesResource\Pages;
 use App\Models\Event;
 use App\Models\Role;
 use App\Models\Template;
 use App\Models\TemplateView;
-use App\Support\Constants;
 use Dotswan\FilamentGrapesjs\Fields\GrapesJs;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -29,6 +29,11 @@ class TemplatesResource extends Resource
     protected static ?int $navigationSort = 1;
 
     public static ?string $breadcrumb = 'Templates';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can(PermissionsEnum::MANAGE_TEMPLATES);
+    }
 
     public static function form(Form $form): Form
     {

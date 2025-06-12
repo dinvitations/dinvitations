@@ -15,6 +15,11 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         $permissions = [
+            PermissionsEnum::MANAGE_ORDERS->value => [
+                Role::ROLES['manager'],
+                Role::ROLES['event_organizer'],
+                Role::ROLES['wedding_organizer'],
+            ],
             PermissionsEnum::VIEW_ANY_ORDERS->value => [
                 Role::ROLES['manager'],
                 Role::ROLES['event_organizer'],
@@ -22,6 +27,11 @@ class PermissionSeeder extends Seeder
                 Role::ROLES['client'],
             ],
 
+            PermissionsEnum::MANAGE_CUSTOMERS->value => [
+                Role::ROLES['manager'],
+                Role::ROLES['event_organizer'],
+                Role::ROLES['wedding_organizer'],
+            ],
             PermissionsEnum::CREATE_CUSTOMERS->value => [
                 Role::ROLES['event_organizer'],
                 Role::ROLES['wedding_organizer'],
@@ -35,6 +45,11 @@ class PermissionSeeder extends Seeder
                 Role::ROLES['wedding_organizer'],
             ],
 
+            PermissionsEnum::MANAGE_TEMPLATES->value => [
+                Role::ROLES['manager'],
+                Role::ROLES['event_organizer'],
+                Role::ROLES['wedding_organizer'],
+            ],
             PermissionsEnum::VIEW_ANY_TEMPLATES->value => [
                 Role::ROLES['manager'],
                 Role::ROLES['event_organizer'],

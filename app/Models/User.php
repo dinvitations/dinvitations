@@ -135,4 +135,12 @@ class User extends Authenticatable implements MustVerifyEmail
             Role::ROLES['wedding_organizer'],
         ]);
     }
+
+    /**
+     * Check whether the user is a client
+     */
+    public function isClient(string $role = null): bool
+    {
+        return $this->hasRole(Role::ROLES['client']);
+    }
 }

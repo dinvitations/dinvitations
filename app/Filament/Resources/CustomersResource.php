@@ -29,6 +29,11 @@ class CustomersResource extends Resource
 
     public static ?string $breadcrumb = 'Customers';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can(PermissionsEnum::MANAGE_CUSTOMERS);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
