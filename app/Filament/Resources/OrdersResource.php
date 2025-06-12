@@ -26,11 +26,6 @@ class OrdersResource extends Resource
 
     public static ?string $breadcrumb = 'Orders';
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        return !auth()->user()->role('client');
-    }
-
     public static function form(Form $form): Form
     {
         return $form
