@@ -11,6 +11,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class LatestOrders extends BaseWidget
 {
@@ -43,16 +44,15 @@ class LatestOrders extends BaseWidget
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->icon(
-                        fn(string $state): string => $state === 'delivered'
-                            ? 'heroicon-s-check-circle'
-                            : 'heroicon-o-minus'
-                    )
-                    ->colors([
-                        'success' => 'delivered',
-                        'primary' => ['processing', 'closed', 'cancelled'],
+                    ->icons([
+                        'heroicon-s-check-circle' => 'active',
+                        'heroicon-o-minus' => 'inactive',
                     ])
-                    ->formatStateUsing(fn(string $state): string => $state === 'delivered' ? 'Active' : 'Inactive')
+                    ->colors([
+                        'success' => 'active',
+                        'primary' => 'inactive',
+                    ])
+                    ->formatStateUsing(fn(string $state): string => Str::title($state))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('price')
@@ -67,7 +67,8 @@ class LatestOrders extends BaseWidget
                 Action::make('open')
                     ->label('Open')
                     ->url(fn(Order $record): string => OrdersResource::getUrl('edit', ['record' => $record])),
-            ]);
+            ])
+            ->poll();
     }
     
     protected function paginateTableQuery(Builder $query): Paginator | CursorPaginator
