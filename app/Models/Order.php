@@ -17,13 +17,6 @@ class Order extends Model
     use CascadeSoftDeletes;
     use HasUuids;
 
-    public const STATUSES = [
-        'processing',
-        'delivered',
-        'closed',
-        'cancelled'
-    ];
-
     protected $keyType = 'string';
     public $incrementing = false;
 
