@@ -21,7 +21,8 @@ class OrderPolicy
      */
     public function view(User $user, Order $order): bool
     {
-        return $user->isOrganizer() && $user->id === $order->customer->organizer->id;
+        return $user->hasPermissionTo(PermissionsEnum::VIEW_ORDERS)
+            && $user->id === $order->customer?->organizer->id;
     }
 
     /**
@@ -29,7 +30,7 @@ class OrderPolicy
      */
     public function create(User $user): bool
     {
-        return $user->isOrganizer();
+        return $user->hasPermissionTo(PermissionsEnum::CREATE_ORDERS);
     }
 
     /**
@@ -37,7 +38,8 @@ class OrderPolicy
      */
     public function update(User $user, Order $order): bool
     {
-        return $user->isOrganizer();
+        return $user->hasPermissionTo(PermissionsEnum::EDIT_ORDERS)
+            && $user->id === $order->customer?->organizer->id;
     }
 
     /**
@@ -45,7 +47,8 @@ class OrderPolicy
      */
     public function delete(User $user, Order $order): bool
     {
-        return $user->isOrganizer();
+        return $user->hasPermissionTo(PermissionsEnum::DELETE_ORDERS)
+            && $user->id === $order->customer?->organizer->id;
     }
 
     /**

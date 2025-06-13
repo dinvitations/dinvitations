@@ -6,6 +6,10 @@ enum PermissionsEnum: string
 {
     case MANAGE_ORDERS = 'manage orders';
     case VIEW_ANY_ORDERS = 'view any orders';
+    case CREATE_ORDERS = 'create orders';
+    case VIEW_ORDERS = 'view orders';
+    case EDIT_ORDERS = 'edit orders';
+    case DELETE_ORDERS = 'delete orders';
 
     case MANAGE_CUSTOMERS = 'manage customers';
     case CREATE_CUSTOMERS = 'create customers';

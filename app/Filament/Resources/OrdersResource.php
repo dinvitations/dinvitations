@@ -14,6 +14,9 @@ use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OrdersResource extends Resource
 {
@@ -78,28 +81,28 @@ class OrdersResource extends Resource
                                 return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
                             }
                         JS))
-                        ->stripCharacters('.')
-                        ->numeric()
-                        ->disabled()
-                        ->dehydrated()
-                        ->helperText(function (string $context) {
-                            return $context === 'edit' ? 'To change prices, go to the package menu' : null;
-                        }),
-                    Forms\Components\ToggleButtons::make('status')
-                        ->dehydrated(false)
-                        ->disabled()
-                        ->default('active')
-                        ->options([
-                            'inactive' => 'Inactive',
-                            'active' => 'Active',
-                        ])
-                        ->icons([
-                            'inactive' => 'heroicon-o-minus',
-                            'active' => 'heroicon-s-check-circle',
-                        ])
-                        ->inline(),
-                ])
-                ->columns(2)
+                            ->stripCharacters('.')
+                            ->numeric()
+                            ->disabled()
+                            ->dehydrated()
+                            ->helperText(function (string $context) {
+                                return $context === 'edit' ? 'To change prices, go to the package menu' : null;
+                            }),
+                        Forms\Components\ToggleButtons::make('status')
+                            ->dehydrated(false)
+                            ->disabled()
+                            ->default('active')
+                            ->options([
+                                'inactive' => 'Inactive',
+                                'active' => 'Active',
+                            ])
+                            ->icons([
+                                'inactive' => 'heroicon-o-minus',
+                                'active' => 'heroicon-s-check-circle',
+                            ])
+                            ->inline(),
+                    ])
+                    ->columns(2)
             ]);
     }
 
@@ -141,7 +144,8 @@ class OrdersResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()->modalHeading('Delete')
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('Delete')
                     ->modalDescription('Are you sure you want to delete?')
                     ->modalSubmitActionLabel('Delete')
                     ->successNotification(function ($livewire) {
@@ -158,6 +162,7 @@ class OrdersResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
+                        ->authorize(fn() => auth()->user()->can(PermissionsEnum::DELETE_ORDERS))
                         ->modalHeading('Delete')
                         ->modalDescription('Are you sure you want to delete?')
                         ->modalSubmitActionLabel('Delete')
@@ -173,6 +178,42 @@ class OrdersResource extends Resource
                         }),
                 ]),
             ]);
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::CREATE_ORDERS);
+    }
+
+    public static function canView(Model $order): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::VIEW_ORDERS)
+            && $order->customer?->organizer_id === auth()->user()->id;
+    }
+
+    public static function canEdit(Model $order): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::EDIT_ORDERS)
+            && $order->customer?->organizer_id === auth()->user()->id;
+    }
+
+    public static function canDelete(Model $order): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_ORDERS)
+            && $order->customer?->organizer_id === auth()->user()->id;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with('customer.organizer')
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])
+            ->when(auth()->user()->isOrganizer(), function (Builder $query) {
+                $query->whereRelation('customer.organizer', 'id', auth()->user()->id);
+            })
+            ->latest('updated_at');
     }
 
     public static function getPages(): array
