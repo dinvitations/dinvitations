@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Askedio\SoftCascade\Traits\SoftCascadeTrait;
 use Exception;
 use Filament\Facades\Filament;
 use Filament\Notifications\Auth\VerifyEmail;
@@ -20,6 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable;
     use HasRoles;
     use SoftDeletes;
+    use SoftCascadeTrait;
     use HasUuids;
 
     public $incrementing = false;
@@ -70,6 +72,8 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    protected $softCascade = ['orders'];
+
     /**
      * Get the user's initials
      */
@@ -97,5 +101,10 @@ class User extends Authenticatable implements MustVerifyEmail
         $notification->url = Filament::getVerifyEmailUrl($this);
 
         $this->notify($notification);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

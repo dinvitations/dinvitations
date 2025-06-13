@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Dyrynda\Database\Support\CascadeSoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +13,7 @@ class Guest extends Model
     /** @use HasFactory<\Database\Factories\GuestFactory> */
     use HasFactory;
     use SoftDeletes;
+    use CascadeSoftDeletes;
     use HasUuids;
 
     protected $keyType = 'string';
@@ -23,6 +25,8 @@ class Guest extends Model
         'phone_number',
         'type_default',
     ];
+
+    protected $softCascade = ['invitationGuests'];
 
     public function user()
     {

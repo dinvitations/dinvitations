@@ -7,8 +7,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "askedio/laravel-soft-cascade": "^12.0",
         "dinvitations/filament-grapesjs-v3": "dev-main",
-        "dyrynda/laravel-cascade-soft-deletes": "^4.5",
         "filament/filament": "^3.3",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",

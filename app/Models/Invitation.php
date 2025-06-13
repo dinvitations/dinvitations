@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Askedio\SoftCascade\Traits\SoftCascadeTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +13,7 @@ class Invitation extends Model
     /** @use HasFactory<\Database\Factories\InvitationFactory> */
     use HasFactory;
     use SoftDeletes;
+    use SoftCascadeTrait;
     use HasUuids;
 
     protected $keyType = 'string';
@@ -35,6 +37,8 @@ class Invitation extends Model
         'date_end' => 'datetime',
         'published_at' => 'datetime',
     ];
+
+    protected $softCascade = ['guests'];
 
     public function order()
     {
