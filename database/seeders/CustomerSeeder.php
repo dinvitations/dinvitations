@@ -15,11 +15,11 @@ class CustomerSeeder extends Seeder
     public function run(): void
     {
         // Create the 'client' role if it doesn't exist
-        Role::findOrCreate('client');
+        Role::findOrCreate($role = Role::ROLES['client']);
 
         // Create 10 users with the 'client' role
-        User::factory()->count(10)->create()->each(function (User $user) {
-            $user->assignRole('client');
+        User::factory()->count(10)->create()->each(function (User $user) use ($role) {
+            $user->assignRole($role);
         });
     }
 }
