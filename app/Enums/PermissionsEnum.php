@@ -9,6 +9,7 @@ enum PermissionsEnum: string
 
     case MANAGE_CUSTOMERS = 'manage customers';
     case CREATE_CUSTOMERS = 'create customers';
+    case VIEW_CUSTOMERS = 'view customers';
     case EDIT_CUSTOMERS = 'edit customers';
     case DELETE_CUSTOMERS = 'delete customers';
 

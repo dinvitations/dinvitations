@@ -36,6 +36,10 @@ class PermissionSeeder extends Seeder
                 Role::ROLES['event_organizer'],
                 Role::ROLES['wedding_organizer'],
             ],
+            PermissionsEnum::VIEW_CUSTOMERS->value => [
+                Role::ROLES['event_organizer'],
+                Role::ROLES['wedding_organizer'],
+            ],
             PermissionsEnum::EDIT_CUSTOMERS->value => [
                 Role::ROLES['event_organizer'],
                 Role::ROLES['wedding_organizer'],

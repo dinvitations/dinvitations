@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\PermissionsEnum;
 use App\Filament\Resources\CustomersResource\Pages;
+use App\Models\Role;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -145,6 +146,7 @@ class CustomersResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
+                        ->authorize(fn() => auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_CUSTOMERS))
                         ->modalHeading('Delete')
                         ->modalDescription(
                             new HtmlString(
@@ -192,14 +194,22 @@ class CustomersResource extends Resource
         return auth()->user()->hasPermissionTo(PermissionsEnum::CREATE_CUSTOMERS);
     }
 
-    public static function canEdit(Model $model): bool
+    public static function canView(Model $customer): bool
     {
-        return auth()->user()->hasPermissionTo(PermissionsEnum::EDIT_CUSTOMERS);
+        return auth()->user()->hasPermissionTo(PermissionsEnum::VIEW_CUSTOMERS)
+            && $customer->organizer_id === auth()->user()->id;
     }
 
-    public static function canDelete(Model $model): bool
+    public static function canEdit(Model $customer): bool
     {
-        return auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_CUSTOMERS);
+        return auth()->user()->hasPermissionTo(PermissionsEnum::EDIT_CUSTOMERS)
+            && $customer->organizer_id === auth()->user()->id;
+    }
+
+    public static function canDelete(Model $customer): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_CUSTOMERS)
+            && $customer->organizer_id === auth()->user()->id;
     }
 
     public static function getEloquentQuery(): Builder
@@ -208,7 +218,11 @@ class CustomersResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->role('client');
+            ->role(Role::ROLES['client'])
+            ->when(auth()->user()->isOrganizer(), function (Builder $query) {
+                $query->whereRelation('organizer', 'id', auth()->user()->id);
+            })
+            ->latest('updated_at');
     }
 
     public static function getPages(): array

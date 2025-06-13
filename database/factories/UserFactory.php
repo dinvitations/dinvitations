@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Order;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -26,8 +27,8 @@ class UserFactory extends Factory
     public function definition(): array
     {
         $organizer = User::inRandomOrder()
-            ->whereDoesntHave('roles', function ($query) {
-                $query->where('name', 'client');
+            ->whereHas('roles', function ($query) {
+                $query->whereIn('name', [Role::ROLES['event_organizer'], Role::ROLES['wedding_organizer']]);
             })->first();
 
         return [
