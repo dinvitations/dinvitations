@@ -180,29 +180,6 @@ class OrdersResource extends Resource
             ]);
     }
 
-    public static function canCreate(): bool
-    {
-        return auth()->user()->hasPermissionTo(PermissionsEnum::CREATE_ORDERS);
-    }
-
-    public static function canView(Model $order): bool
-    {
-        return auth()->user()->hasPermissionTo(PermissionsEnum::VIEW_ORDERS)
-            && $order->customer?->organizer_id === auth()->user()->id;
-    }
-
-    public static function canEdit(Model $order): bool
-    {
-        return auth()->user()->hasPermissionTo(PermissionsEnum::EDIT_ORDERS)
-            && $order->customer?->organizer_id === auth()->user()->id;
-    }
-
-    public static function canDelete(Model $order): bool
-    {
-        return auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_ORDERS)
-            && $order->customer?->organizer_id === auth()->user()->id;
-    }
-
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
