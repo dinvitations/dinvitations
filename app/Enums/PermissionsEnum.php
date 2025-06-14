@@ -10,12 +10,14 @@ enum PermissionsEnum: string
     case VIEW_ORDERS = 'view orders';
     case EDIT_ORDERS = 'edit orders';
     case DELETE_ORDERS = 'delete orders';
+    case RESTORE_ORDERS = 'restore orders';
 
     case MANAGE_CUSTOMERS = 'manage customers';
     case CREATE_CUSTOMERS = 'create customers';
     case VIEW_CUSTOMERS = 'view customers';
     case EDIT_CUSTOMERS = 'edit customers';
     case DELETE_CUSTOMERS = 'delete customers';
+    case RESTORE_CUSTOMERS = 'restore customers';
 
     case MANAGE_TEMPLATES = 'manage templates';
     case VIEW_ANY_TEMPLATES = 'view any templates';

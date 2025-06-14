@@ -6,6 +6,7 @@ use App\Enums\PermissionsEnum;
 use App\Filament\Resources\OrdersResource\Pages;
 use App\Models\Order;
 use App\Models\Package;
+use App\Models\Role;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,8 +16,8 @@ use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class OrdersResource extends Resource
 {
@@ -45,7 +46,10 @@ class OrdersResource extends Resource
                             ->required()
                             ->searchable()
                             ->getSearchResultsUsing(function (string $search): array {
-                                return User::role('client')
+                                return User::role(Role::ROLES['client'])
+                                    ->when(auth()->user()->isOrganizer(), function (Builder $query) {
+                                        $query->whereRelation('organizer', 'id', auth()->user()->id);
+                                    })
                                     ->where(function ($query) use ($search) {
                                         $query->where('name', 'ilike', "%{$search}%");
                                         $query->orWhere('email', 'ilike', "%{$search}%");
@@ -58,7 +62,7 @@ class OrdersResource extends Resource
                                     ->toArray();
                             })
                             ->getOptionLabelUsing(function ($value): ?string {
-                                $user = User::role('client')->find($value);
+                                $user = User::role(Role::ROLES['client'])->find($value);
                                 return $user ? "{$user->name} ({$user->email})" : null;
                             }),
                         Forms\Components\Select::make('package_id')
@@ -76,11 +80,11 @@ class OrdersResource extends Resource
                             }),
                         Forms\Components\TextInput::make('price')
                             ->mask(RawJs::make(<<<'JS'
-                            $input => {
-                                let number = $input.replace(/\D/g, '');
-                                return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                            }
-                        JS))
+                                $input => {
+                                    let number = $input.replace(/\D/g, '');
+                                    return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                }
+                            JS))
                             ->stripCharacters('.')
                             ->numeric()
                             ->disabled()
@@ -142,6 +146,18 @@ class OrdersResource extends Resource
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->filters([
+                Tables\Filters\TrashedFilter::make()
+                    ->native(false),
+                Tables\Filters\SelectFilter::make('status')
+                    ->native(false)
+                    ->options([
+                        'active' => 'Active',
+                        'inactive' => 'Inactive'
+                    ])
+                    ->selectablePlaceholder(false)
+                    ->default('active')
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
@@ -158,11 +174,23 @@ class OrdersResource extends Resource
 
                         $livewire->resetTable();
                     }),
+                Tables\Actions\RestoreAction::make()
+                    ->modalHeading('Restore')
+                    ->modalDescription('Are you sure you want to restore?')
+                    ->successNotification(function ($livewire) {
+                        Notification::make()
+                            ->success()
+                            ->icon('heroicon-s-check-circle')
+                            ->title('Sucessfully')
+                            ->body('Order restored successfully')
+                            ->send();
+
+                        $livewire->resetTable();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->authorize(fn() => auth()->user()->can(PermissionsEnum::DELETE_ORDERS))
                         ->modalHeading('Delete')
                         ->modalDescription('Are you sure you want to delete?')
                         ->modalSubmitActionLabel('Delete')
@@ -176,6 +204,20 @@ class OrdersResource extends Resource
 
                             $livewire->resetTable();
                         }),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->modalHeading('Restore')
+                        ->modalDescription('Are you sure you want to restore?')
+                        ->modalSubmitActionLabel('Restore')
+                        ->successNotification(function ($livewire) {
+                            Notification::make()
+                                ->success()
+                                ->icon('heroicon-s-check-circle')
+                                ->title('Sucessfully')
+                                ->body('Orders restored successfully')
+                                ->send();
+
+                            $livewire->resetTable();
+                        }),
                 ]),
             ]);
     }
@@ -183,7 +225,6 @@ class OrdersResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with('customer.organizer')
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])

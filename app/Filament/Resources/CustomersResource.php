@@ -99,7 +99,8 @@ class CustomersResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
+                    ->native(false),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -146,7 +147,6 @@ class CustomersResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->authorize(fn() => auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_CUSTOMERS))
                         ->modalHeading('Delete')
                         ->modalDescription(
                             new HtmlString(
@@ -209,6 +209,12 @@ class CustomersResource extends Resource
     public static function canDelete(Model $customer): bool
     {
         return auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_CUSTOMERS)
+            && $customer->organizer_id === auth()->user()->id;
+    }
+
+    public static function canRestore(Model $customer): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::RESTORE_CUSTOMERS)
             && $customer->organizer_id === auth()->user()->id;
     }
 
