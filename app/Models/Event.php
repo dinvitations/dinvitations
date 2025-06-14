@@ -22,6 +22,12 @@ class Event extends Model
         'description',
     ];
 
+    public const NAMES = [
+        'wedding' => 'Wedding',
+        'open_house' => 'Open House',
+        'seminar' => 'Seminar',
+    ];
+
     public function package()
     {
         return $this->belongsTo(Package::class);

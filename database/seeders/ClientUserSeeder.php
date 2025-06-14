@@ -5,26 +5,20 @@ namespace Database\Seeders;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class ClientUserSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        // Create or update the client user
-        $client = User::updateOrCreate(
-            ['email' => 'restuedosetiaji@gmail.com'],
-            [
-                'name' => 'Restu Edo Setiaji',
-                'password' => Hash::make('Edo998877!'),
-                'email_verified_at' => now(),
-            ]
-        );
+        // Create the 'client' role if it doesn't exist
+        Role::findOrCreate($role = Role::ROLES['client']);
 
-        // Create 'client' role if it doesn't exist
-        $clientRole = Role::firstOrCreate(['name' => 'client']);
-
-        // Assign the role to the client user
-        $client->assignRole($clientRole);
+        // Create 10 users with the 'client' role
+        User::factory()->count(10)->create()->each(function (User $user) use ($role) {
+            $user->assignRole($role);
+        });
     }
 }

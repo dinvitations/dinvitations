@@ -21,8 +21,13 @@ class HistoryOrdersResource extends Resource
     protected static ?string $pluralModelLabel = 'History Orders';
 
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = 'Manage';
     protected static ?int $navigationSort = 3;
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->isClient();
+    }
 
     public static function table(Table $table): Table
     {

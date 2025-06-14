@@ -6,6 +6,7 @@ use App\Models\Guest;
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use App\Models\Order;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -18,7 +19,7 @@ class DashboardClientSeeder extends Seeder
     public function run(): void
     {
         // Use an existing client or create a new one with the 'client' role
-        $client = User::role('client')->inRandomOrder()->first() ?? User::factory()->client()->create();
+        $client = User::role(Role::ROLES['client'])->inRandomOrder()->first() ?? User::factory()->client()->create();
 
         // Create a random number of orders (e.g. 3–5), all inactive by default
         $orders = Order::factory()

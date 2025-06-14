@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CustomersResource\Pages;
 
 use App\Filament\Resources\CustomersResource;
+use App\Models\Role;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Alignment;
@@ -12,25 +13,14 @@ class CreateCustomers extends CreateRecord
 {
     protected static string $resource = CustomersResource::class;
 
-    protected static bool $canCreateAnother = false;
-
-    protected bool $creatingClientRole = false;
-
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $this->creatingClientRole = true;
-
-        return $data;
-    }
-
     protected function afterCreate(): void
     {
-        if ($this->creatingClientRole && $this->record) {
-            $this->record->assignRole('client');
-        }
+        if ($this->record) {
+            $this->record->assignRole(Role::ROLES['client']);
 
-        if ($this->record instanceof MustVerifyEmail && !$this->record->hasVerifiedEmail()) {
-            $this->record->sendEmailVerificationNotification();
+            if ($this->record instanceof MustVerifyEmail && !$this->record->hasVerifiedEmail()) {
+                $this->record->sendEmailVerificationNotification();
+            }
         }
     }
     

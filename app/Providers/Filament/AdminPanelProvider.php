@@ -66,7 +66,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 NavigationGroup::make()
-                    ->label('Shop'),
+                    ->label(' '),
                 NavigationGroup::make()
                     ->label('Manage'),
             ]);

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,7 +18,7 @@ class GuestFactory extends Factory
      */
     public function definition(): array
     {
-        $customer = User::role('client')->inRandomOrder()->first()
+        $customer = User::role(Role::ROLES['client'])->inRandomOrder()->first()
             ?? User::factory()->client()->create();
 
         return [

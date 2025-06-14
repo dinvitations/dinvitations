@@ -23,6 +23,13 @@ class Package extends Model
         'description',
     ];
 
+    public const NAMES = [
+        'basic' => 'Basic',
+        'medium' => 'Medium',
+        'premium' => 'Premium',
+        'luxury' => 'Luxury',
+    ];
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');

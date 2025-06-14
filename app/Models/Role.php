@@ -12,4 +12,11 @@ class Role extends SpatieRole
 
     protected $keyType = 'string';
     public $incrementing = false;
+
+    const ROLES = [
+        'manager' => 'manager',
+        'event_organizer' => 'event_organizer',
+        'wedding_organizer' => 'wedding_organizer',
+        'client' => 'client',
+    ];
 }

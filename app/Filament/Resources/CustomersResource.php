@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PermissionsEnum;
 use App\Filament\Resources\CustomersResource\Pages;
+use App\Models\Role;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\HtmlString;
@@ -22,10 +25,15 @@ class CustomersResource extends Resource
     protected static ?string $pluralModelLabel = 'Customers';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
-    protected static ?string $navigationGroup = 'Shop';
+    protected static ?string $navigationGroup = ' ';
     protected static ?int $navigationSort = 3;
 
     public static ?string $breadcrumb = 'Customers';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->can(PermissionsEnum::MANAGE_CUSTOMERS);
+    }
 
     public static function form(Form $form): Form
     {
@@ -52,6 +60,9 @@ class CustomersResource extends Resource
                             ->minLength(8)
                             ->revealable()
                             ->helperText('Please enter minimum 8 characters'),
+
+                        Forms\Components\Hidden::make('organizer_id')
+                            ->default(auth()->user()->id),
                     ])
                     ->columns(2)
             ]);
@@ -74,6 +85,12 @@ class CustomersResource extends Resource
                     ->searchable()
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('organizer.name')
+                    ->label('Organizer')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn() => auth()->user()->isManager()),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Last Updated')
                     ->dateTime('M d, Y')
@@ -82,7 +99,8 @@ class CustomersResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
+                    ->native(false),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -103,7 +121,7 @@ class CustomersResource extends Resource
                             ->title('Sucessfully')
                             ->body('Customer deleted successfully')
                             ->send();
-                        
+
                         $livewire->resetTable();
                     }),
                 Tables\Actions\RestoreAction::make()
@@ -171,13 +189,45 @@ class CustomersResource extends Resource
             ]);
     }
 
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::CREATE_CUSTOMERS);
+    }
+
+    public static function canView(Model $customer): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::VIEW_CUSTOMERS)
+            && $customer->organizer_id === auth()->user()->id;
+    }
+
+    public static function canEdit(Model $customer): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::EDIT_CUSTOMERS)
+            && $customer->organizer_id === auth()->user()->id;
+    }
+
+    public static function canDelete(Model $customer): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_CUSTOMERS)
+            && $customer->organizer_id === auth()->user()->id;
+    }
+
+    public static function canRestore(Model $customer): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::RESTORE_CUSTOMERS)
+            && $customer->organizer_id === auth()->user()->id;
+    }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->role('client');
+            ->role(Role::ROLES['client'])
+            ->when(auth()->user()->isOrganizer(), function (Builder $query) {
+                $query->whereRelation('organizer', 'id', auth()->user()->id);
+            });
     }
 
     public static function getPages(): array

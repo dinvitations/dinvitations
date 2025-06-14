@@ -4,16 +4,16 @@ namespace App\Filament\Resources\TemplatesResource\Pages;
 
 use App\Filament\Resources\TemplatesResource;
 use App\Models\Event;
+use App\Models\Role;
 use Filament\Actions;
 use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 
 class ListTemplates extends ListRecords
 {
     protected static string $resource = TemplatesResource::class;
-    
+
     public function getBreadcrumbs(): array
     {
         return [];
@@ -29,7 +29,7 @@ class ListTemplates extends ListRecords
 
     public function getTabs(): array
     {
-        if (Event::count() === 0) {
+        if (auth()->user()->hasRole(Role::ROLES['wedding_organizer']) || empty(Event::count())) {
             return [];
         }
 
@@ -39,7 +39,7 @@ class ListTemplates extends ListRecords
 
         foreach (Event::all() as $event) {
             $tabs[strtolower($event->name)] = Tab::make($event->name)
-                ->query(fn (Builder $query): Builder => $query->where('event_id', $event->id));
+                ->query(fn(Builder $query): Builder => $query->where('event_id', $event->id));
         }
 
         return $tabs;

@@ -45,7 +45,6 @@ class PackagesResource extends Resource
 
                         Forms\Components\Select::make('features')
                             ->label('Features')
-                            ->disabled()
                             ->multiple()
                             ->required()
                             ->searchable()

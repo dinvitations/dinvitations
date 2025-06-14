@@ -54,7 +54,7 @@ class EventResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->dateTime('M d, Y')
                     ->label('Last Updated')
                     ->sortable()
             ])
