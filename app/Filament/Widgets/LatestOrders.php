@@ -25,7 +25,6 @@ class LatestOrders extends BaseWidget
                     ->when(auth()->user()->isOrganizer(), function (Builder $query) {
                         $query->whereRelation('customer.organizer', 'id', auth()->user()->id);
                     })
-                    ->with(['customer.organizer', 'package'])
             )
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No orders yet')

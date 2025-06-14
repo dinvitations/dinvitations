@@ -4,10 +4,12 @@ namespace App\Filament\Widgets;
 
 use App\Models\InvitationGuest;
 use App\Models\Order;
+use App\Models\Role;
 use App\Models\Template;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Database\Eloquent\Builder;
 
 class StatsOverview extends BaseWidget
 {
@@ -15,7 +17,7 @@ class StatsOverview extends BaseWidget
     {
         $user = auth()->user();
 
-        if ($user->hasRole('client')) {
+        if ($user->hasRole(Role::ROLES['client'])) {
             $totalInvitedGuests = InvitationGuest::query()
                 ->whereHas('invitation', function ($query) use ($user) {
                     $query->whereNotNull('published_at')
@@ -45,10 +47,29 @@ class StatsOverview extends BaseWidget
                 Stat::make('Attendance Rate', $attendanceRate),
             ];
         } else {
+            $totalCustomers = User::role(Role::ROLES['client'])
+                ->when(auth()->user()->isOrganizer(), function (Builder $query) {
+                    $query->whereRelation('organizer', 'id', auth()->user()->id);
+                })
+                ->count();
+
+            $totalTemplates = Template::when(auth()->user()->hasRole(Role::ROLES['wedding_organizer']), function (Builder $query) {
+                    $query->whereHas('event', function (Builder $query) {
+                        $query->where('name', 'ILIKE', '%wedding%')
+                            ->orWhere('name', 'ILIKE', '%nikah%');
+                    });
+                })
+                ->count();
+
+            $totalOrders = Order::when(auth()->user()->isOrganizer(), function (Builder $query) {
+                    $query->whereRelation('customer.organizer', 'id', auth()->user()->id);
+                })
+                ->count();
+
             $stats = [
-                Stat::make('Total Customers', User::role('client')->count()),
-                Stat::make('Total Templates', Template::count()),
-                Stat::make('Total Orders', Order::count()),
+                Stat::make('Total Customers', $totalCustomers),
+                Stat::make('Total Templates', $totalTemplates),
+                Stat::make('Total Orders', $totalOrders),
             ];
         }
         return $stats;
