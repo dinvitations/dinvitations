@@ -6,12 +6,12 @@ use App\Filament\Resources\OrdersResource;
 use App\Models\Order;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 
 class LatestOrders extends BaseWidget
 {
@@ -59,6 +59,16 @@ class LatestOrders extends BaseWidget
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
+            ->filters([
+                SelectFilter::make('status')
+                    ->native(false)
+                    ->options([
+                        'active' => 'Active',
+                        'inactive' => 'Inactive'
+                    ])
+                    ->selectablePlaceholder(false)
+                    ->default('active')
+            ])
             ->actions([
                 Action::make('open')
                     ->label('Open')
