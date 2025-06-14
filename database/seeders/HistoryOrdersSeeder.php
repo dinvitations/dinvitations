@@ -6,6 +6,7 @@ use App\Models\Guest;
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use App\Models\Order;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -18,7 +19,7 @@ class HistoryOrdersSeeder extends Seeder
     public function run(): void
     {
         // Get or create a client user
-        $client = User::role('client')->inRandomOrder()->first() ?? User::factory()->create()->assignRole('client');
+        $client = User::role(Role::ROLES['client'])->inRandomOrder()->first() ?? User::factory()->create()->assignRole(Role::ROLES['client']);
 
         // Create 5 orders with descending creation dates
         $orders = collect();

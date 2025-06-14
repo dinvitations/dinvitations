@@ -50,7 +50,7 @@ class Order extends Model
 
     public function customer()
     {
-        return $this->belongsTo(User::class, 'user_id')->role('client');
+        return $this->belongsTo(User::class, 'user_id')->role(Role::ROLES['client']);
     }
 
     public function package()

@@ -18,14 +18,14 @@ class OrderSeeder extends Seeder
     public function run(): void
     {
         // Create the 'client' role if it doesn't exist
-        Role::findOrCreate('client');
+        Role::findOrCreate(Role::ROLES['client']);
 
         // Create sample packages
         $packages = Package::factory()->count(5)->create();
 
         // Create 5 users with the 'client' role
         $clients = User::factory()->count(5)->create()->each(function ($user) {
-            $user->assignRole('client');
+            $user->assignRole(Role::ROLES['client']);
         });
 
         // Assign 2 orders per client

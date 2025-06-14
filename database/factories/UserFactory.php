@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Order;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -54,7 +53,7 @@ class UserFactory extends Factory
     public function client(): static
     {
         return $this->afterCreating(function (User $user) {
-            $user->assignRole('client');
+            $user->assignRole(Role::ROLES['client']);
         });
     }
 }
