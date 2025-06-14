@@ -212,10 +212,20 @@ class CustomersResource extends Resource
             && $customer->organizer_id === auth()->user()->id;
     }
 
+    public static function canDeleteAny(): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::DELETE_CUSTOMERS);
+    }
+
     public static function canRestore(Model $customer): bool
     {
         return auth()->user()->hasPermissionTo(PermissionsEnum::RESTORE_CUSTOMERS)
             && $customer->organizer_id === auth()->user()->id;
+    }
+
+    public static function canRestoreAny(): bool
+    {
+        return auth()->user()->hasPermissionTo(PermissionsEnum::RESTORE_CUSTOMERS);
     }
 
     public static function getEloquentQuery(): Builder

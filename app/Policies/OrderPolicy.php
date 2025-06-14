@@ -43,6 +43,14 @@ class OrderPolicy
     }
 
     /**
+     * Determine whether the user can delete any model.
+     */
+    public function deleteAny(User $user): bool
+    {
+        return $user->hasPermissionTo(PermissionsEnum::DELETE_ORDERS);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Order $order): bool
@@ -52,11 +60,20 @@ class OrderPolicy
     }
 
     /**
+     * Determine whether the user can restore any model.
+     */
+    public function restoreAny(User $user): bool
+    {
+        return $user->hasPermissionTo(PermissionsEnum::RESTORE_ORDERS);
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, Order $order): bool
     {
-        return false;
+        return $user->hasPermissionTo(PermissionsEnum::RESTORE_ORDERS)
+            && $user->id === $order->customer?->organizer->id;
     }
 
     /**

@@ -48,9 +48,25 @@ class PackagePolicy
     }
 
     /**
+     * Determine whether the user can delete any model.
+     */
+    public function deleteAny(User $user): bool
+    {
+        return false;
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Package $package): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can restore any model.
+     */
+    public function restoreAny(User $user): bool
     {
         return false;
     }
