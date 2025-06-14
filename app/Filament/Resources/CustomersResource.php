@@ -221,8 +221,7 @@ class CustomersResource extends Resource
             ->role(Role::ROLES['client'])
             ->when(auth()->user()->isOrganizer(), function (Builder $query) {
                 $query->whereRelation('organizer', 'id', auth()->user()->id);
-            })
-            ->latest('updated_at');
+            });
     }
 
     public static function getPages(): array

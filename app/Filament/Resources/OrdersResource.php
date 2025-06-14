@@ -189,8 +189,7 @@ class OrdersResource extends Resource
             ])
             ->when(auth()->user()->isOrganizer(), function (Builder $query) {
                 $query->whereRelation('customer.organizer', 'id', auth()->user()->id);
-            })
-            ->latest('updated_at');
+            });
     }
 
     public static function getPages(): array
