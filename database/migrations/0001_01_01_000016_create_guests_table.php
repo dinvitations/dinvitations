@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('guests', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('user_id');
+            $table->uuid('guest_group_id')->nullable()->index();
             $table->string('name')->index();
             $table->string('phone_number')->nullable();
             $table->enum('type_default', ['reg', 'vip', 'vvip'])->default('reg');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('user_id')
-                  ->references('id')->on('users')
-                  ->onUpdate('cascade')
-                  ->onDelete('cascade');
+            $table->foreign('guest_group_id')
+                ->references('id')->on('guest_groups')
+                ->cascadeOnUpdate()
+                ->nullOnDelete();
         });
     }
 
