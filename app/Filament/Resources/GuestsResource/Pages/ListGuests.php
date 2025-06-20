@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\GuestsResource\Pages;
 
 use App\Filament\Resources\GuestsResource;
+use App\Models\Guest;
 use App\Models\GuestGroup;
 use Filament\Notifications\Notification;
 use Filament\Pages\Actions\CreateAction;
@@ -22,6 +23,8 @@ class ListGuests extends Page implements HasTable
 
     public static ?string $title = 'Guests';
 
+    public ?GuestGroup $selectedGroup = null;
+
     public function getBreadcrumbs(): array
     {
         return [];
@@ -33,11 +36,6 @@ class ListGuests extends Page implements HasTable
             ->when(auth()->user()->isClient(), function ($query) {
                 return $query->where('customer_id', auth()->user()->id);
             });
-    }
-
-    public function getGuestGroupsTableQuery()
-    {
-        return GuestGroup::query();
     }
 
     public function table(Table $table): Table
@@ -53,9 +51,14 @@ class ListGuests extends Page implements HasTable
                     ->searchable(),
             ])
             ->defaultSort('updated_at', 'desc')
-            ->defaultPaginationPageOption(3)
             ->paginationPageOptions([3, 5, 10, 20])
             ->actions([
+                Tables\Actions\Action::make('choose')
+                    ->icon('heroicon-s-eye')
+                    ->label(fn($record) => $record->id === $this->selectedGroup?->id ? 'Chosen' : 'Choose')
+                    ->action(function (GuestGroup $record) {
+                        $this->selectedGroup = $record;
+                    }),
                 Tables\Actions\EditAction::make()
                     ->modalHeading('Edit Guest Group')
                     ->model(GuestGroup::class)
@@ -107,6 +110,86 @@ class ListGuests extends Page implements HasTable
                                 ->body('Selected guest groups deleted successfully');
                         }),
                 ]),
+            ]);
+    }
+
+    public function getGuestsQuery(): Builder
+    {
+        return Guest::query()
+            ->where('guest_group_id', $this->selectedGroup->id)
+            ->with([
+                'invitationGuests' => function ($query) {
+                    $query
+                        ->whereHas('invitation', function ($query) {
+                            $query->where('date_end', '<=', now());
+                        })
+                        ->with([
+                            'invitation' => function ($query) {
+                                $query->where('date_end', '<=', now());
+                            }
+                        ]);
+                }
+            ]);
+    }
+
+    public function guestsTable(): ?Table
+    {
+        if (!$this->selectedGroup)
+            return null;
+
+        return Table::make($this)
+            ->query($this->getGuestsQuery())
+            ->defaultSort('updated_at', 'desc')
+            ->heading($this->selectedGroup?->name)
+            ->columns([
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Name')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Category')
+                    ->sortable()
+                    ->formatStateUsing(fn($state, $record) => strtoupper($record)),
+                Tables\Columns\TextColumn::make('phone_number')
+                    ->label('Whatsapp Number'),
+                Tables\Columns\TextColumn::make('barcode')
+                    ->label('Barcode'),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->sortable()
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->invitationGuests->isEmpty())
+                            return 'Not Sent';
+
+                        return match ($record->invitationGuests->first()?->rsvp) {
+                            true => 'Attending',
+                            false => 'Not Attending',
+                            default => 'No Response',
+                        };
+                    }),
+            ])
+            ->actions([
+                Tables\Actions\Action::make('send')
+                    ->label('Send')
+                    ->icon('heroicon-s-paper-airplane')
+                    ->action(function ($record) {
+                        // Logic kirim WhatsApp
+                        Notification::make()
+                            ->success()
+                            ->title('Sent')
+                            ->body("Message sent to {$record->name}")
+                            ->send();
+                    }),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+            ])
+            ->headerActions([
+                Tables\Actions\CreateAction::make()
+                    ->model(Guest::class)
+                    ->label('New Guest')
+                    ->mutateFormDataUsing(fn($data) => array_merge($data, [
+                        'guest_group_id' => $this->selectedGroup->id,
+                    ])),
             ]);
     }
 
