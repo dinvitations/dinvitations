@@ -13,6 +13,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\{Table, Columns, Actions, Filters};
 use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class GuestTable extends Component implements HasTable, HasForms
@@ -35,8 +36,8 @@ class GuestTable extends Component implements HasTable, HasForms
                     ->where('guest_group_id', $this->groupId)
                     ->with([
                         'invitationGuests' => fn($q) => $q
-                            ->whereHas('invitation', fn($qI) => $qI->where('date_end', '<=', now()))
-                            ->with('invitation', fn($qI) => $qI->where('date_end', '<=', now()))
+                            ->whereHas('invitation', fn($qI) => $qI->where('date_end', '>=', now()))
+                            ->with('invitation', fn($qI) => $qI->where('date_end', '>=', now()))
                     ])
             )
             ->columns([
@@ -113,8 +114,45 @@ class GuestTable extends Component implements HasTable, HasForms
             ])
             ->actions([
                 Actions\Action::make('send')
-                    ->icon('heroicon-s-paper-airplane')
-                    ->label('Send'),
+                    ->icon('heroicon-o-paper-airplane')
+                    ->label('Send')
+                    ->visible(function (Guest $guest) {
+                        return auth()->user()->orders()->where('status', 'active')->exists()
+                            && $guest->invitationGuests->isEmpty();
+                    })
+                    ->action(function (Guest $record, Actions\Action $action) {
+                        $order = auth()->user()->orders()->firstWhere('status', 'active');
+                        if (!$order || !$order->invitation) {
+                            Notification::make()
+                                ->title('Action Failed')
+                                ->body('You do not have any active invitation.')
+                                ->danger()
+                                ->send();
+
+                            $action->halt();
+                        }
+
+                        DB::transaction(function () use ($record, $order) {
+                            $record->invitationGuests()->create([
+                                'invitation_id' => $order->invitation?->id,
+                                'type' => $record->type_default,
+                            ]);
+
+                            // TODO: Send WhatsApp message here
+
+                            Notification::make()
+                                ->title('Success')
+                                ->body('Invitation sent successfully')
+                                ->success()
+                                ->send();
+                        });
+                    }),
+
+                Actions\Action::make('copy')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->label('Copy')
+                    ->visible(fn(Guest $guest) => $guest->invitationGuests->isNotEmpty())
+                    ->action(null),
 
                 Actions\EditAction::make()
                     ->form([
