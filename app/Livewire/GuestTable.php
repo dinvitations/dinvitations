@@ -72,6 +72,8 @@ class GuestTable extends Component implements HasTable, HasForms
                         };
                     }),
             ])
+            ->emptyStateHeading('No guests yet')
+            ->emptyStateDescription('Start by adding your first one!')
             ->filters([
                 Filters\SelectFilter::make('type_default')
                     ->label('Category')
@@ -256,7 +258,7 @@ class GuestTable extends Component implements HasTable, HasForms
             ->headerActions([
                 Actions\CreateAction::make()
                     ->model(Guest::class)
-                    ->label('Create New Guest')
+                    ->label('New Guest')
                     ->form([
                         TextInput::make('name')
                             ->required()

@@ -12,7 +12,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\{Builder, Collection};
 
 class ListGuests extends Page implements HasTable
 {
@@ -93,6 +93,10 @@ class ListGuests extends Page implements HasTable
                             ->icon('heroicon-s-check-circle')
                             ->title('Successfully')
                             ->body('Guest group deleted successfully');
+                    })
+                    ->after(function (GuestGroup $record) {
+                        if ($this->selectedGroup?->is($record))
+                            $this->selectedGroup = null;
                     }),
             ])
             ->bulkActions([
@@ -108,6 +112,13 @@ class ListGuests extends Page implements HasTable
                                 ->icon('heroicon-s-check-circle')
                                 ->title('Successfully')
                                 ->body('Selected guest groups deleted successfully');
+                        })
+                        ->after(function (Collection $records) {
+                            if (!$this->selectedGroup)
+                                return;
+
+                            if ($records->contains($this->selectedGroup))
+                                $this->selectedGroup = null;
                         }),
                 ]),
             ]);

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->uuid('customer_id')->nullable()->index();
             $table->string('name')->index();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('customer_id')
                 ->references('id')->on('users')
