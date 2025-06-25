@@ -248,7 +248,7 @@ class TemplatesResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        if (auth()->user()->hasRole(Role::ROLES['wedding_organizer'])) {
+        if (auth()->user()->isWO()) {
             $query->whereHas('event', function (Builder $query) {
                 $query->where('name', 'ILIKE', '%wedding%')
                     ->orWhere('name', 'ILIKE', '%nikah%');
