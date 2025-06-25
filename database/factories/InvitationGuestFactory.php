@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Guest;
 use App\Models\Invitation;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -26,9 +27,49 @@ class InvitationGuestFactory extends Factory
             'invitation_id' => $invitation->id,
             'type' => fake()->randomElement(['reg', 'vip', 'vvip']),
             'rsvp' => fake()->boolean(80),
-            'attended_at' => fake()->optional(0.7)->dateTimeBetween('-1 week', 'now'),
-            'souvenir_at' => fake()->optional(0.5)->dateTimeBetween('-1 week', 'now'),
-            'selfie_at' => fake()->optional(0.4)->dateTimeBetween('-1 week', 'now'),
+            'attended_at' => null,
+            'souvenir_at' => null,
+            'selfie_at' => null,
         ];
+    }
+
+    public function forInvitationWithTimestamps(Invitation $invitation): self
+    {
+        return $this->state(function () use ($invitation) {
+            [$attendedAt, $souvenirAt, $selfieAt] = $this->generateAttendanceTimestamps($invitation);
+
+            return [
+                'invitation_id' => $invitation->id,
+                'attended_at'   => $attendedAt,
+                'souvenir_at'   => $souvenirAt,
+                'selfie_at'     => $selfieAt,
+            ];
+        });
+    }
+
+    private function generateAttendanceTimestamps(Invitation $invitation): array
+    {
+        $start = Carbon::parse($invitation->date_start);
+        $end = Carbon::parse($invitation->date_end);
+
+        $attendedAt = fake()->optional(0.7)->dateTimeBetween($start, $end);
+
+        $souvenirAt = null;
+        if ($attendedAt) {
+            $souvenirAt = fake()->optional(0.5)->dateTimeBetween(
+                Carbon::parse($attendedAt)->copy()->addMinute(),
+                $end
+            );
+        }
+
+        $selfieAt = null;
+        if ($souvenirAt) {
+            $selfieAt = fake()->optional(0.4)->dateTimeBetween(
+                Carbon::parse($souvenirAt)->copy()->addMinute(),
+                $end
+            );
+        }
+
+        return [$attendedAt, $souvenirAt, $selfieAt];
     }
 }
