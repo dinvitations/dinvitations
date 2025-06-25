@@ -2,17 +2,37 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 
 class LastAttendance extends BaseWidget
 {
     protected int|string|array $columnSpan = 'full';
+
+    protected function getTableHeading(): string | Htmlable | null
+    {
+        $invitation = Invitation::whereNotNull('published_at')
+            ->whereHas('order', function ($subQuery) {
+                $subQuery->where('status', 'active');
+                $subQuery->where('user_id', auth()->user()->id);
+            }, '=', 1)
+            ->first();
+
+        $heading = static::$heading ?? (string) str(class_basename(static::class))
+                    ->beforeLast('Widget')
+                    ->kebab()
+                    ->replace('-', ' ')
+                    ->title();
+
+        return $invitation?->event_name ? $heading . ' - ' . $invitation?->event_name : $heading;
+    }
 
     public function table(Table $table): Table
     {
@@ -56,7 +76,12 @@ class LastAttendance extends BaseWidget
                         'warning' => 'vip',
                         'danger' => 'vvip',
                     ])
-                    ->formatStateUsing(fn($state) => strtoupper($state)),
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'reg' => 'General',
+                        'vip' => 'VIP',
+                        'vvip' => 'VVIP',
+                        default => strtoupper($state),
+                    }),
             ])
             ->actions([
                 ViewAction::make('open')
