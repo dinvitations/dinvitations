@@ -105,6 +105,8 @@ return [
         ),
     ],
 
+    'qr_api_key' => env('APP_QR_API_KEY', null),
+
     /*
     |--------------------------------------------------------------------------
     | Maintenance Mode Driver
