@@ -4,7 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Exports\GuestBookExport;
 use App\Filament\Resources\HistoryOrdersResource\Pages;
+use App\Models\InvitationGuest;
 use App\Models\Order;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -81,9 +83,42 @@ class HistoryOrdersResource extends Resource
                                     abort(404, 'Invitation not found.');
                                 }
 
-                                return Excel::download(
-                                    new GuestBookExport($invitation->id),
-                                    'guestbook_'.$record->order_number.'.xlsx'
+                                $guests = InvitationGuest::with('guest')
+                                    ->where('invitation_id', $invitation->id)
+                                    ->get()
+                                    ->map(function ($entry) {
+                                        $attendedAt = $entry->attended_at;
+
+                                        return [
+                                            'name'            => $entry->guest->name ?? '',
+                                            'type'            => match ($entry->type) {
+                                                'reg'  => 'General',
+                                                'vip'  => 'VIP',
+                                                'vvip' => 'VVIP',
+                                                default => strtoupper($entry->type ?? '')
+                                            },
+                                            'rsvp'            => $entry->rsvp ?? '',
+                                            'attended_at'     => $attendedAt ? $attendedAt->format('h.i A') : '-',
+                                            'souvenir_at'     => $entry->souvenir_at ? $entry->souvenir_at->format('h.i A') : '-',
+                                            'selfie_at'       => $entry->selfie_at ? $entry->selfie_at->format('h.i A') : '-',
+                                            'attendance_date' => $attendedAt ? $attendedAt->toDateString() : null,
+                                        ];
+                                    })
+                                    ->sortBy(function ($guest) {
+                                        return $guest['attendance_date'] ?? '9999-12-31';
+                                    })
+                                    ->groupBy('attendance_date');
+
+                                $pdf = Pdf::loadView('pdf.guestbook', [
+                                    'invitation' => $invitation,
+                                    'guestsByDate' => $guests,
+                                    'dateStart' => $invitation->date_start,
+                                    'dateEnd' => $invitation->date_end,
+                                ])->setPaper('a4', 'landscape');
+
+                                return response()->streamDownload(
+                                    fn() => print($pdf->stream()),
+                                    'guestbook_' . $record->order_number . '.pdf'
                                 );
                             })
                             ->after(function ($record) {
@@ -91,7 +126,7 @@ class HistoryOrdersResource extends Resource
                                     ->success()
                                     ->icon('heroicon-o-check-circle')
                                     ->title('Sucessfully')
-                                    ->body('Guest Book - '.$record->order_number.' downloaded successfully')
+                                    ->body('Guest Book - ' . $record->order_number . ' downloaded successfully')
                                     ->sendToDatabase(auth()->user(), isEventDispatched: true);
                             })
                     )
