@@ -19,8 +19,8 @@ class InvitationFactory extends Factory
      */
     public function definition(): array
     {
-        $start = now()->addDays(30);
-        $end = (clone $start)->addHours(fake()->numberBetween(4, 72));
+        $start = now();
+        $end = (clone $start)->addHours(rand(4, 72));
 
         return [
             'order_id' => Order::factory(),
@@ -32,7 +32,7 @@ class InvitationFactory extends Factory
             'whatsapp_message' => fake()->sentence(),
             'location' => fake()->address(),
             'location_latlong' => fake()->latitude() . ',' . fake()->longitude(),
-            'published_at' => now(),
+            'published_at' => now()->subDays(30),
         ];
     }
 

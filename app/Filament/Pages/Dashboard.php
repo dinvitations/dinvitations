@@ -6,7 +6,6 @@ use App\Filament\Resources\OrdersResource;
 use App\Filament\Widgets\LastAttendance;
 use App\Filament\Widgets\LatestOrders;
 use App\Filament\Widgets\StatsOverview;
-use App\Models\Role;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -19,7 +18,7 @@ class Dashboard extends BaseDashboard
     {
         $user = auth()->user();
 
-        if ($user->hasRole(Role::ROLES['client'])) {
+        if ($user->isClient()) {
             $actions = [
                 ViewAction::make('scan_qrcode')
                     ->label('Scan QRCode')
@@ -43,7 +42,7 @@ class Dashboard extends BaseDashboard
     {
         $user = auth()->user();
 
-        if ($user->hasRole(Role::ROLES['client'])) {
+        if ($user->isClient()) {
             $widgets = [
                 StatsOverview::class,
                 LastAttendance::class,
