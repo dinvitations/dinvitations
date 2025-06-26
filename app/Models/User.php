@@ -125,7 +125,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Check whether the user is an organizer
      */
-    public function isOrganizer(string $role = null): bool
+    public function isOrganizer(?string $role = null): bool
     {
         if (!empty($role))
             return $this->hasRole($role);
@@ -137,9 +137,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check whether the user is Wedding Organizer
+     */
+    public function isWO(): bool
+    {
+        return $this->hasRole(Role::ROLES['wedding_organizer']);
+    }
+
+    /**
      * Check whether the user is a client
      */
-    public function isClient(string $role = null): bool
+    public function isClient(): bool
     {
         return $this->hasRole(Role::ROLES['client']);
     }
