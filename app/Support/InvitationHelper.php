@@ -28,5 +28,29 @@ class InvitationHelper
             $invitation->whatsapp_message
         );
     }
+
+    /**
+     * Get the WhatsApp message for a guest based on their invitation.
+     *
+     * @param Invitation $invitation
+     * @param Guest $guest
+     * @return string
+     */
+    public static function getMessageWaMe(Invitation $invitation, Guest $guest): string
+    {
+        return str_replace(
+            [
+                '\n',
+                '{guest_name}',
+                '{invitation_date}'
+            ],
+            [
+                '%0a',
+                $guest->name,
+                $invitation->date_end->format('d F Y')
+            ],
+            $invitation->whatsapp_message
+        );
+    }
 }
 

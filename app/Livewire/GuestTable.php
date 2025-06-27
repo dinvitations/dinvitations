@@ -140,8 +140,15 @@ class GuestTable extends Component implements HasTable, HasForms
                             })->exists()
                             && $guest->invitationGuests->isEmpty();
                     })
+                    ->disabled(fn(Guest $guest) => empty($guest->phone_number))
                     ->action(function (Guest $record, Actions\Action $action) {
-                        $order = auth()->user()->orders()->firstWhere('status', 'active');
+                        $order = auth()->user()->orders()
+                            ->where('status', 'active')
+                            ->whereHas('invitation', function ($query) {
+                                $query->whereNotNull('published_at');
+                            })
+                            ->first();
+
                         if (!$order || !$order->invitation) {
                             Notification::make()
                                 ->title('Action Failed')
@@ -157,15 +164,27 @@ class GuestTable extends Component implements HasTable, HasForms
                                 'invitation_id' => $order->invitation?->id,
                                 'type' => $record->type_default,
                             ]);
-
-                            // TODO: Send WhatsApp message here
-
-                            Notification::make()
-                                ->title('Success')
-                                ->body('Invitation sent successfully')
-                                ->success()
-                                ->send();
                         });
+
+                        Notification::make()
+                            ->title('Success')
+                            ->body('Invitation sent successfully')
+                            ->success()
+                            ->send();
+                    })
+                    ->after(function (Guest $record, $action) {
+                        $order = auth()->user()->orders()
+                            ->where('status', 'active')
+                            ->whereHas('invitation', function ($query) {
+                                $query->whereNotNull('published_at');
+                            })
+                            ->first();
+
+                        $parsedMessage = urlencode(InvitationHelper::getMessageWaMe($order->invitation, $record));
+                        $rawPhoneNumber = preg_replace('/\D+/', '', $record->phone_number);
+                        $waMeUrl = "https://wa.me/$rawPhoneNumber?text=$parsedMessage";
+
+                        return redirect()->away($waMeUrl);
                     }),
 
                 Actions\Action::make('copy')
@@ -173,7 +192,7 @@ class GuestTable extends Component implements HasTable, HasForms
                     ->label('Copy')
                     ->visible(fn(Guest $guest) => $guest->invitationGuests->isNotEmpty())
                     ->url('#')
-                    ->extraAttributes(function (Guest $record) {
+                    ->extraAttributes(function (Guest $record, $livewire) {
                         $invitation = $record->invitationGuests->first()?->invitation;
 
                         if (blank($invitation))
@@ -185,25 +204,11 @@ class GuestTable extends Component implements HasTable, HasForms
                             async () => {
                                 try {
                                     await navigator.clipboard.writeText(`{$parsedMessage}`);
-
-                                    \$dispatch('open-notification', {
-                                        id: 'copy-success-notification',
-                                        status: 'success',
-                                        title: 'WhatsApp Message Copied to Clipboard',
-                                        body: 'The WhatsApp message has been copied.',
-                                    });
                                 } catch (err) {
                                     console.error('Failed to copy: ', err);
-                                    \$dispatch('open-notification', {
-                                        id: 'copy-error-notification',
-                                        status: 'danger',
-                                        title: 'Copy Failed',
-                                        body: 'Could not copy the text to your clipboard.',
-                                    });
                                 }
                             }
                         JS;
-
 
                         return [
                             'x-on:click.prevent' => new HtmlString($jsSnippet),
