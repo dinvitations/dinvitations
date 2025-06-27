@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Guest;
+use App\Support\InvitationHelper;
 use Filament\Forms\Components\{Grid, Select, TextInput};
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -14,6 +15,7 @@ use Filament\Tables\{Table, Columns, Actions, Filters};
 use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 use Livewire\Component;
 
 class GuestTable extends Component implements HasTable, HasForms
@@ -170,7 +172,43 @@ class GuestTable extends Component implements HasTable, HasForms
                     ->icon('heroicon-o-paper-airplane')
                     ->label('Copy')
                     ->visible(fn(Guest $guest) => $guest->invitationGuests->isNotEmpty())
-                    ->action(null),
+                    ->url('#')
+                    ->extraAttributes(function (Guest $record) {
+                        $invitation = $record->invitationGuests->first()?->invitation;
+
+                        if (blank($invitation))
+                            return [];
+
+                        $parsedMessage = InvitationHelper::getMessage($invitation, $record);
+
+                        $jsSnippet = <<<JS
+                            async () => {
+                                try {
+                                    await navigator.clipboard.writeText(`{$parsedMessage}`);
+
+                                    \$dispatch('open-notification', {
+                                        id: 'copy-success-notification',
+                                        status: 'success',
+                                        title: 'WhatsApp Message Copied to Clipboard',
+                                        body: 'The WhatsApp message has been copied.',
+                                    });
+                                } catch (err) {
+                                    console.error('Failed to copy: ', err);
+                                    \$dispatch('open-notification', {
+                                        id: 'copy-error-notification',
+                                        status: 'danger',
+                                        title: 'Copy Failed',
+                                        body: 'Could not copy the text to your clipboard.',
+                                    });
+                                }
+                            }
+                        JS;
+
+
+                        return [
+                            'x-on:click.prevent' => new HtmlString($jsSnippet),
+                        ];
+                    }),
 
                 Actions\EditAction::make()
                     ->form([
