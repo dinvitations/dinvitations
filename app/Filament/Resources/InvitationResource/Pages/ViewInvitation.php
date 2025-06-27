@@ -33,6 +33,8 @@ class ViewInvitation extends ViewRecord
                             ->schema([
                                 TextEntry::make('event_name')
                                     ->label('Event Name'),
+                                TextEntry::make('organizer_name')
+                                    ->label("Organizer’s Name"),
                                 TextEntry::make('event_date')
                                     ->label('Event Date')
                                     ->getStateUsing(function (Invitation $record) {
@@ -53,8 +55,6 @@ class ViewInvitation extends ViewRecord
 
                                         return $record->date_start->format('M j') . ' to ' . $end;
                                     }),
-                                TextEntry::make('organizer_name')
-                                    ->label("Organizer’s Name"),
                                 TextEntry::make('event_time')
                                     ->label('Time Date')
                                     ->getStateUsing(function (Invitation $record) {
