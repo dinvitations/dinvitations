@@ -16,20 +16,11 @@ class ViewInvitation extends ViewRecord
 {
     protected static string $resource = InvitationResource::class;
 
-    protected static ?string $title = "Invitation Details";
+    protected static ?string $title = "Event Details";
 
     public function getBreadcrumbs(): array
     {
         return [];
-    }
-
-    public function mount($record): void
-    {
-        parent::mount($record);
-
-        if ($this->record->published_at === null) {
-            $this->redirect(InvitationResource::getUrl('edit', ['record' => $this->record]));
-        }
     }
 
     public function infolist(Infolist $infolist): Infolist
@@ -42,14 +33,44 @@ class ViewInvitation extends ViewRecord
                             ->schema([
                                 TextEntry::make('event_name')
                                     ->label('Event Name'),
-                                TextEntry::make('date_start')
+                                TextEntry::make('event_date')
                                     ->label('Event Date')
-                                    ->dateTime('M d, Y'),
+                                    ->getStateUsing(function (Invitation $record) {
+                                        if (!$record->date_start) {
+                                            return null;
+                                        }
+
+                                        $start = $record->date_start->format('M j');
+                                        $end = $record->date_end?->format('M j, Y');
+
+                                        if (!$record->date_end || $record->date_start->isSameDay($record->date_end)) {
+                                            return $record->date_start->format('M j, Y');
+                                        }
+
+                                        if ($record->date_start->format('M') === $record->date_end->format('M')) {
+                                            return $start . ' to ' . $record->date_end->format('j, Y');
+                                        }
+
+                                        return $record->date_start->format('M j') . ' to ' . $end;
+                                    }),
                                 TextEntry::make('organizer_name')
                                     ->label("Organizer’s Name"),
-                                TextEntry::make('date_start_time')
+                                TextEntry::make('event_time')
                                     ->label('Time Date')
-                                    ->state(fn(Invitation $record) => $record->date_start?->format('h:i A')),
+                                    ->getStateUsing(function (Invitation $record) {
+                                        if (!$record->date_start) {
+                                            return null;
+                                        }
+
+                                        $startTime = $record->date_start->format('h:i A');
+
+                                        if (!$record->date_end || $record->date_start->format('H:i') === $record->date_end->format('H:i')) {
+                                            return $startTime;
+                                        }
+
+                                        $endTime = $record->date_end->format('h:i A');
+                                        return $startTime . ' to ' . $endTime;
+                                    }),
                                 TextEntry::make('phone_number')
                                     ->label('Whatsapp Number'),
                                 TextEntry::make('slug')
@@ -59,14 +80,16 @@ class ViewInvitation extends ViewRecord
                                             ->icon('heroicon-m-arrow-top-right-on-square')
                                             ->url(fn ($record) => url('/invitation/' . $record->slug))
                                             ->openUrlInNewTab()
-                                    ),
+                                    )
+                                    ->visible(fn (Invitation $record) => $record->published_at !== null),
                                 TextEntry::make('location')
                                     ->label('Address'),
                                 TextEntry::make('published_at')
                                     ->label('Published at')
                                     ->dateTime('M d, Y')
                                     ->badge()
-                                    ->color(fn ($state) => $state ? 'success' : 'secondary'),
+                                    ->color('success')
+                                    ->visible(fn (Invitation $record) => $record->published_at !== null),
                         ]),
                     ]),
 

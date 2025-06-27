@@ -9,12 +9,7 @@ class ListInvitations extends ListRecords
 {
     protected static string $resource = InvitationResource::class;
 
-    protected static ?string $title = "Invitation Details";
-
-    public function getBreadcrumbs(): array
-    {
-        return [];
-    }
+    protected static ?string $title = "Event Details";
 
     public function mount(): void
     {
@@ -24,11 +19,6 @@ class ListInvitations extends ListRecords
 
         if (!$invitation) {
             $this->redirect(InvitationResource::getUrl('create'));
-            return;
-        }
-
-        if ($invitation->published_at === null) {
-            $this->redirect(InvitationResource::getUrl('edit', ['record' => $invitation]));
             return;
         }
 

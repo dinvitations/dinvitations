@@ -3,27 +3,37 @@
 namespace App\Filament\Resources\InvitationResource\Pages;
 
 use App\Filament\Resources\InvitationResource;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Enums\Alignment;
 
 class EditInvitation extends EditRecord
 {
     protected static string $resource = InvitationResource::class;
 
-    protected static ?string $title = "Invitation Details";
+    protected static ?string $title = "Event Details";
 
-    public function getBreadcrumbs(): array
+    protected function getSavedNotification(): ?Notification
     {
-        return [];
+        return Notification::make()
+            ->success()
+            ->icon('heroicon-s-check-circle')
+            ->title('Sucessfully')
+            ->body('Event Details updated successfully');
     }
-    
-    public function mount($record): void
+
+    protected function getRedirectUrl(): string
     {
-        parent::mount($record);
+        return $this->getResource()::getUrl('index');
     }
 
     protected function getFormActions(): array
     {
-        return [];
+        return [
+            $this->getSubmitFormAction()
+                ->label('Update'),
+        ];
     }
 
+    public static string | Alignment $formActionsAlignment = Alignment::End;
 }

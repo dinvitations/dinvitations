@@ -3,36 +3,48 @@
 namespace App\Filament\Resources\InvitationResource\Pages;
 
 use App\Filament\Resources\InvitationResource;
+use App\Models\Order;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Support\Enums\Alignment;
 
 class CreateInvitation extends CreateRecord
 {
     protected static string $resource = InvitationResource::class;
 
-    protected static ?string $title = "Invitation Details";
+    protected static ?string $title = "Event Details";
 
-    public function getBreadcrumbs(): array
+    protected function getCreatedNotification(): ?Notification
     {
-        return [];
+        return Notification::make()
+            ->success()
+            ->icon('heroicon-s-check-circle')
+            ->title('Sucessfully')
+            ->body('Event Details placed successfully');
     }
-    
-    public function mount(): void
+
+    protected function getRedirectUrl(): string
     {
-        parent::mount();
-
-        $invitation = InvitationResource::getEloquentQuery()->first();
-
-        if ($invitation && $invitation->published_at === null) {
-            $this->redirect(InvitationResource::getUrl('edit', ['record' => $invitation]));
-        }
-
-        if ($invitation) {
-            $this->redirect(InvitationResource::getUrl('index'));
-        }
+        return $this->getResource()::getUrl('index');
     }
 
     protected function getFormActions(): array
     {
-        return [];
+        return [
+            $this->getSubmitFormAction(),
+        ];
     }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $order = Order::where('status', 'active')
+            ->where('user_id', auth()->user()->id)
+            ->first();
+
+        $data['order_id'] = $order?->id;
+
+        return $data;
+    }
+
+    public static string | Alignment $formActionsAlignment = Alignment::End;
 }

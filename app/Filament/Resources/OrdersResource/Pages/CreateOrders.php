@@ -46,14 +46,6 @@ class CreateOrders extends CreateRecord
         }
     }
 
-    protected function afterCreate(): void
-    {
-        Invitation::create([
-            'order_id' => $this->record->id,
-            'message' => Invitation::MESSAGE
-        ]);
-    }
-
     protected function getCreatedNotification(): ?Notification
     {
         return Notification::make()
