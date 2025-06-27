@@ -131,13 +131,21 @@ class ListGuests extends Page implements HasTable
             ->with([
                 'invitationGuests' => function ($query) {
                     $query
-                        ->whereHas('invitation', function ($query) {
-                            $query->where('date_end', '<=', now());
+                        ->whereHas('invitation', function ($qI) {
+                            $qI->whereNotNull('published_at')
+                                ->whereHas('order', function ($qO) {
+                                    $qO->where('status', 'active')
+                                        ->where('user_id', auth()->user()->id);
+                                }, '=', 1);
                         })
                         ->with([
-                            'invitation' => function ($query) {
-                                $query->where('date_end', '<=', now());
-                            }
+                            'invitation' => function ($qI) {
+                                $qI->whereNotNull('published_at')
+                                    ->whereHas('order', function ($qO) {
+                                        $qO->where('status', 'active')
+                                            ->where('user_id', auth()->user()->id);
+                                    }, '=', 1);
+                            },
                         ]);
                 }
             ]);
@@ -160,11 +168,9 @@ class ListGuests extends Page implements HasTable
                 Tables\Columns\TextColumn::make('type')
                     ->label('Category')
                     ->sortable()
-                    ->formatStateUsing(fn($state, $record) => strtoupper($record)),
+                    ->formatStateUsing(fn($state) => strtoupper($state)),
                 Tables\Columns\TextColumn::make('phone_number')
                     ->label('Whatsapp Number'),
-                Tables\Columns\TextColumn::make('barcode')
-                    ->label('Barcode'),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->sortable()

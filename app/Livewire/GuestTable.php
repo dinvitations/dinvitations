@@ -36,8 +36,22 @@ class GuestTable extends Component implements HasTable, HasForms
                     ->where('guest_group_id', $this->groupId)
                     ->with([
                         'invitationGuests' => fn($q) => $q
-                            ->whereHas('invitation', fn($qI) => $qI->where('date_end', '>=', now()))
-                            ->with('invitation', fn($qI) => $qI->where('date_end', '>=', now()))
+                            ->whereHas('invitation', function ($qI) {
+                                $qI->whereNotNull('published_at')
+                                    ->whereHas('order', function ($qO) {
+                                        $qO->where('status', 'active')
+                                            ->where('user_id', auth()->user()->id);
+                                    }, '=', 1);
+                            })
+                            ->with([
+                                'invitation' => function ($qI) {
+                                    $qI->whereNotNull('published_at')
+                                        ->whereHas('order', function ($qO) {
+                                            $qO->where('status', 'active')
+                                                ->where('user_id', auth()->user()->id);
+                                        }, '=', 1);
+                                },
+                            ])
                     ])
             )
             ->columns([
@@ -47,18 +61,17 @@ class GuestTable extends Component implements HasTable, HasForms
 
                 Columns\TextColumn::make('type_default')
                     ->label('Category')
-                    ->formatStateUsing(fn($state) => [
+                    ->formatStateUsing(fn($state) => match ($state) {
                         'reg' => 'General',
                         'vip' => 'VIP',
                         'vvip' => 'VVIP',
-                    ][$state] ?? $state),
+                        default => $state,
+                    }),
 
                 Columns\TextColumn::make('phone_number')
                     ->label('Whatsapp Number')
                     ->formatStateUsing(fn($state) => "+62 $state")
                     ->placeholder('No Data'),
-
-                Columns\TextColumn::make('barcode'),
 
                 Columns\TextColumn::make('status')
                     ->state(function ($record) {
@@ -119,7 +132,10 @@ class GuestTable extends Component implements HasTable, HasForms
                     ->icon('heroicon-o-paper-airplane')
                     ->label('Send')
                     ->visible(function (Guest $guest) {
-                        return auth()->user()->orders()->where('status', 'active')->exists()
+                        return auth()->user()->orders()->where('status', 'active')
+                            ->whereHas('invitation', function ($query) {
+                                $query->whereNotNull('published_at');
+                            })->exists()
                             && $guest->invitationGuests->isEmpty();
                     })
                     ->action(function (Guest $record, Actions\Action $action) {
@@ -171,7 +187,8 @@ class GuestTable extends Component implements HasTable, HasForms
                                         'reg' => 'General',
                                         'vip' => 'VIP',
                                         'vvip' => 'VVIP',
-                                    ]),
+                                    ])
+                                    ->native(false),
                                 TextInput::make('phone_number')
                                     ->label('Whatsapp Number')
                                     ->tel()
@@ -217,6 +234,13 @@ class GuestTable extends Component implements HasTable, HasForms
                             ])
 
                     ])
+                    ->after(function (Guest $guest, array $data) {
+                        $invitationGuest = $guest->invitationGuests->first();
+                        if ($invitationGuest)
+                            $invitationGuest->update([
+                                'type' => $data['type_default'],
+                            ]);
+                    })
                     ->modalHeading('Edit Guest')
                     ->modalFooterActions(fn(Actions\EditAction $action) => [
                         $action->getModalSubmitAction()->label('Update'),

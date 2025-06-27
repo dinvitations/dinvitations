@@ -2,9 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\Role;
-use App\Models\User;
-use Database\Seeders\ClientUserSeeder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
