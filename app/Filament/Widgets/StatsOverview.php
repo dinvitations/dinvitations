@@ -53,7 +53,7 @@ class StatsOverview extends BaseWidget
                 })
                 ->count();
 
-            $totalTemplates = Template::when(auth()->user()->hasRole(Role::ROLES['wedding_organizer']), function (Builder $query) {
+            $totalTemplates = Template::when(auth()->user()->isWO(), function (Builder $query) {
                     $query->whereHas('event', function (Builder $query) {
                         $query->where('name', 'ILIKE', '%wedding%')
                             ->orWhere('name', 'ILIKE', '%nikah%');

@@ -96,7 +96,7 @@ class LastAttendance extends BaseWidget
                     }),
             ])
             ->defaultSort('attended_at', 'desc')
-            ->poll();
+            ->poll('5s');
     }
 
     protected function paginateTableQuery(Builder $query): Paginator
