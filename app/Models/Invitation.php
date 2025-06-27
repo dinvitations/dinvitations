@@ -68,7 +68,7 @@ class Invitation extends Model
 
     public function views()
     {
-        return $this->belongsTo(InvitationTemplateView::class);
+        return $this->hasMany(InvitationTemplateView::class);
     }
 
     public function guests()
