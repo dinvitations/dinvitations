@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Guest;
+use App\Models\InvitationGuest;
 use App\Support\InvitationHelper;
 use Filament\Forms\Components\{Grid, Select, TextInput};
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -14,15 +15,19 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\{Table, Columns, Actions, Filters};
 use Filament\Tables\Concerns\InteractsWithTable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class GuestTable extends Component implements HasTable, HasForms
 {
     use InteractsWithTable, InteractsWithForms;
 
     public ?string $groupId = null, $groupName = null;
+    protected ?InvitationGuest $invitationGuest = null;
 
     public function mount(string $groupId, string $groupName): void
     {
@@ -160,7 +165,7 @@ class GuestTable extends Component implements HasTable, HasForms
                         }
 
                         DB::transaction(function () use ($record, $order) {
-                            $record->invitationGuests()->create([
+                            $this->invitationGuest = $record->invitationGuests()->create([
                                 'invitation_id' => $order->invitation?->id,
                                 'type' => $record->type_default,
                             ]);
@@ -183,6 +188,31 @@ class GuestTable extends Component implements HasTable, HasForms
                         $parsedMessage = urlencode(InvitationHelper::getMessageWaMe($order->invitation, $record));
                         $rawPhoneNumber = preg_replace('/\D+/', '', $record->phone_number);
                         $waMeUrl = "https://wa.me/$rawPhoneNumber?text=$parsedMessage";
+
+                        // Generate QR code for guest attendance
+                        $disk = 'minio';
+                        $path = implode('', [
+                            'qr-codes/',
+                            "{$order->invitation?->slug}_",
+                            "$record->id.png"
+                        ]);
+                        $qrContent = json_encode([
+                            'id' => $record->id,
+                            'type' => 'attendance',
+                        ]);
+                        $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
+                        Storage::disk($disk)->put($path, $qrCodeSvg);
+
+                        if (!Storage::disk('minio')->exists($path)) {
+                            throw new \Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
+                        }
+
+                        if ($this->invitationGuest)
+                            DB::transaction(function () use ($path) {
+                                $this->invitationGuest->update([
+                                    'qr_code_path' => $path,
+                                ]);
+                            });
 
                         return redirect()->away($waMeUrl);
                     }),

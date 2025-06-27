@@ -17,6 +17,7 @@ return new class extends Migration
             $table->uuid('invitation_id')->index();
             $table->enum('type', ['reg', 'vip', 'vvip']);
             $table->boolean('rsvp')->nullable();
+            $table->string('qr_code_path')->nullable();
             $table->timestamp('attended_at')->nullable();
             $table->timestamp('souvenir_at')->nullable();
             $table->timestamp('selfie_at')->nullable();
