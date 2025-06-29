@@ -14,20 +14,20 @@ return new class extends Migration
         Schema::create('invitation_template_views', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('invitation_id')->index();
-            $table->uuid('template_view_id')->nullable()->index();
+            $table->uuid('template_id')->nullable()->index();
             $table->uuid('file_id')->nullable();
-            $table->enum('type', ['html', 'css', 'js', 'json'])->index();
+            $table->string('type')->index();
             $table->longText('content')->nullable();
             $table->timestamps();
-            $table->softDeletes();
 
-            $table->foreign('template_view_id')
-                ->references('id')->on('template_views')
-                ->onUpdate('cascade')
-                ->onDelete('set null');
+            $table->foreign('template_id')
+                ->references('id')
+                ->on('templates')
+                ->onDelete('cascade');
 
             $table->foreign('file_id')
-                ->references('id')->on('files')
+                ->references('id')
+                ->on('files')
                 ->onDelete('set null');
         });
     }

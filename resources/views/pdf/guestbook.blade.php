@@ -102,7 +102,7 @@
             <div>{{ $dateStart->format('y') }}</div>
         </div>
         <div class="footer">
-            <strong>{{ $invitation->name }}</strong><br>
+            <strong>{{ $invitation->event_name }}</strong><br>
             @if ($sameDay)
                 {{ $dateStart->format('M d, h.i A') }} to {{ $dateEnd->format('h.i A') }}
             @else
@@ -119,7 +119,7 @@
 
         @foreach ($chunks as $pageIndex => $chunk)
         <div class="page table-page page-break">
-            <div style="font-weight: bold;">{{ $invitation->name }}</div>
+            <div style="font-weight: bold;">{{ $invitation->event_name }}</div>
             
             <div class="date-top">
                 {{ $date ? \Carbon\Carbon::parse($date)->format('F d, Y') : 'Not Attended' }}
@@ -158,7 +158,7 @@
             <div>{{ $dateEnd->format('y') }}</div>
         </div>
         <div class="back-footer">
-            <strong>{{ $invitation->name }}</strong><br>
+            <strong>{{ $invitation->event_name }}</strong><br>
             @if ($sameDay)
                 {{ $dateStart->format('M d, h.i A') }} to {{ $dateEnd->format('h.i A') }}
             @else

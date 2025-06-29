@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Invitation;
 use App\Models\Order;
 use App\Models\Template;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,17 +22,21 @@ class InvitationFactory extends Factory
     {
         $start = now();
         $end = (clone $start)->addHours(rand(4, 72));
+        $firstName = fake()->unique()->firstName();
+        $secondName = fake()->unique()->firstName();
 
         return [
             'order_id' => Order::factory(),
             'template_id' => Template::factory(),
-            'name' => Str::title(fake()->words(3, true)),
+            'event_name' => Str::title(fake()->words(3, true)),
+            'organizer_name' => "{$firstName} & {$secondName}",
             'slug' => Str::slug(fake()->unique()->words(2, true)),
             'date_start' => $start,
             'date_end' => $end,
-            'whatsapp_message' => fake()->sentence(),
+            'phone_number' => fake()->e164PhoneNumber(),
+            'message' => Invitation::MESSAGE,
             'location' => fake()->address(),
-            'location_latlong' => fake()->latitude() . ',' . fake()->longitude(),
+            'location_latlng' => fake()->latitude() . ',' . fake()->longitude(),
             'published_at' => now()->subDays(30),
         ];
     }
@@ -40,13 +45,15 @@ class InvitationFactory extends Factory
     {
         return $this->state([
             'template_id' => null,
-            'name' => null,
+            'event_name' => null,
+            'organizer_name' => null,
             'slug' => null,
             'date_start' => null,
             'date_end' => null,
-            'whatsapp_message' => null,
+            'phone_number' => null,
+            'message' => null,
             'location' => null,
-            'location_latlong' => null,
+            'location_latlng' => null,
             'published_at' => null,
         ]);
     }
