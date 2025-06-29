@@ -2,37 +2,37 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\PermissionsEnum;
-use App\Filament\Resources\TemplatesResource\Pages;
-use App\Models\Event;
-use App\Models\Role;
+use App\Filament\Resources\InvitationTemplateResource\Pages;
+use App\Models\Invitation;
 use App\Models\Template;
 use App\Models\TemplateView;
 use Dotswan\FilamentGrapesjs\Fields\GrapesJs;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class TemplatesResource extends Resource
+class InvitationTemplateResource extends Resource
 {
-    protected static ?string $model = Template::class;
+    protected static ?string $model = Invitation::class;
+    protected static ?string $modelLabel = 'Template';
+    protected static ?string $pluralModelLabel = 'Templates';
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
-    protected static ?string $navigationGroup = ' ';
+    protected static ?string $navigationGroup = 'Manage';
     protected static ?int $navigationSort = 1;
 
-    public static ?string $breadcrumb = 'Templates';
+    protected static ?string $breadcrumb = 'Template';
 
     public static function canAccess(): bool
     {
-        return auth()->user()->can(PermissionsEnum::MANAGE_TEMPLATES);
+        return auth()->user()->isClient();
     }
 
     public static function form(Form $form): Form
@@ -41,62 +41,53 @@ class TemplatesResource extends Resource
             ->schema([
                 Forms\Components\Section::make()
                     ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->required()
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255)
-                            ->reactive()
-                            ->afterStateUpdated(function (callable $set, $state) {
-                                $set('slug', Str::slug($state));
-                            })
-                            ->lazy()
-                            ->columnSpanFull(),
-                        Forms\Components\Select::make('event_id')
-                            ->label('Event Category')
-                            ->placeholder('- Select an event category -')
-                            ->required()
-                            ->options(Event::pluck('name', 'id'))
-                            ->native(false),
-                        Forms\Components\TextInput::make('slug')
-                            ->maxLength(255)
-                            ->disabled()
-                            ->dehydrated(),
-                        Forms\Components\FileUpload::make('preview_url')
-                            ->label('Template Preview')
-                            ->disk('minio')
-                            ->directory('template-previews')
-                            ->visibility('private')
-                            ->image()
-                            ->imageEditor()
-                            ->imageResizeMode('force')
-                            ->imageCropAspectRatio('1:1')
-                            ->imageResizeTargetWidth('1080')
-                            ->imageResizeTargetHeight('1080')
-                            ->columnSpanFull(),
-                    ])
-                    ->columns(2),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Hidden::make('template_id')
+                                    ->formatStateUsing(fn() => request()->query('template_id')),
+                                Forms\Components\TextInput::make('slug')
+                                    ->label('Slug')
+                                    ->formatStateUsing(fn($record) => $record->slug ?? Str::slug($record->event_name))
+                                    ->required()
+                                    ->unique(ignoreRecord: true)
+                                    ->maxLength(50),
+                                Forms\Components\DateTimePicker::make('published_at')
+                                    ->label('Published at'),
+                            ])
+                    ]),
+
                 Forms\Components\Section::make()
                     ->schema([
                         GrapesJs::make('template_builder')
                             ->label('Template Builder')
                             ->dehydrated(false)
-                            ->afterStateHydrated(function (GrapesJs $component, ?Template $record) {
-                                if (!$record) {
+                            ->afterStateHydrated(function (GrapesJs $component, ?Invitation $record) {
+                                $templateId = request()->query('template_id');
+                                if (!$templateId) {
                                     return;
                                 }
 
-                                $cacheKey = "template_view_data_{$record->id}";
+                                $template = Template::find($templateId);
+                                if (!$template) {
+                                    return;
+                                }
 
-                                $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($record) {
+                                $invitationHasViews = $record && $record->views()->exists();
+
+                                $cacheKey = $invitationHasViews
+                                    ? "invitation_view_data_{$record->id}"
+                                    : "template_view_data_{$template->id}";
+
+                                $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($invitationHasViews, $record, $template) {
                                     $types = array_keys(TemplateView::getTypes());
 
-                                    $views = $record->views()
+                                    $views = ($invitationHasViews ? $record->views() : $template->views())
                                         ->with('file')
                                         ->whereIn('type', $types)
                                         ->get()
                                         ->keyBy('type');
 
-                                    $getContent = function (?TemplateView $view): string {
+                                    $getContent = function ($view): string {
                                         if (!$view || !$view->file) {
                                             return '';
                                         }
@@ -157,14 +148,18 @@ class TemplatesResource extends Resource
                                 // 'grapesjs-style-bg',
                                 // 'grapesjs-style-border',
                             ])
+                            ->settings([
+                                'disableDrag' => true,
+                            ])
                             ->id('template_builder')
-                    ]),
+                    ])
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->query(Template::query())
             ->defaultPaginationPageOption(6)
             ->paginationPageOptions([6, 9, 12, 15])
             ->emptyStateHeading('No template yet')
@@ -218,30 +213,54 @@ class TemplatesResource extends Resource
                 'xs' => 1,
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
+                Tables\Actions\Action::make('view')
                     ->label('Visit link')
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->url(fn($record) => route('templates.show', ['slug' => $record->slug, 'type' => 'template']))
                     ->openUrlInNewTab(),
-                Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()->modalHeading('Delete')
-                        ->modalDescription('Are you sure you want to delete?')
-                        ->modalSubmitActionLabel('Delete')
-                        ->successNotification(null)
-                        ->after(function ($livewire) {
-                            Notification::make()
-                                ->success()
-                                ->icon('heroicon-s-check-circle')
-                                ->title('Sucessfully')
-                                ->body('Templates deleted successfully')
-                                ->send();
+                Tables\Actions\Action::make('choose')
+                    ->icon('heroicon-s-pencil-square')
+                    ->label(function ($record) {
+                        $invitation = Invitation::whereHas('order', function ($query) {
+                            $query->where('status', 'active')
+                                ->where('user_id', auth()->user()->id);
+                        })
+                            ->first();
 
-                            $livewire->resetTable();
-                        }),
-                ]),
+                        if ($invitation && $invitation?->template_id === $record->id) {
+                            return 'Choosed';
+                        }
+
+                        return 'Choose';
+                    })
+                    ->visible(function () {
+                        return Invitation::whereHas('order', function ($query) {
+                            $query->where('status', 'active')
+                                ->where('user_id', auth()->user()->id);
+                        })->exists();
+                    })
+                    ->url(function ($record) {
+                        $invitation = Invitation::whereHas('order', function ($query) {
+                            $query->where('status', 'active')
+                                ->where('user_id', auth()->user()->id);
+                        })->first();
+
+                        if (!$invitation) {
+                            abort(Response::HTTP_NOT_FOUND, 'No active invitation found for this user.');
+                        }
+
+                        if ($invitation->published_at && $invitation->template_id === $record->id) {
+                            return InvitationTemplateResource::getUrl('view', [
+                                'record' => $invitation,
+                                'template_id' => $record->id,
+                            ]);
+                        }
+
+                        return InvitationTemplateResource::getUrl('edit', [
+                            'record' => $invitation,
+                            'template_id' => $record->id,
+                        ]);
+                    }),
             ]);
     }
 
@@ -249,7 +268,7 @@ class TemplatesResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        if (auth()->user()->isWO()) {
+        if (auth()->user()->organizer->isWO()) {
             $query->whereHas('event', function (Builder $query) {
                 $query->where('name', 'ILIKE', '%wedding%')
                     ->orWhere('name', 'ILIKE', '%nikah%');
@@ -262,9 +281,9 @@ class TemplatesResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTemplates::route('/'),
-            'create' => Pages\CreateTemplates::route('/create'),
-            'edit' => Pages\EditTemplates::route('/{record}/edit'),
+            'index' => Pages\ListInvitationTemplates::route('/'),
+            'edit' => Pages\EditInvitationTemplate::route('/{record}/edit'),
+            'view' => Pages\ViewInvitationTemplate::route('/{record}/view'),
         ];
     }
 }
