@@ -1,26 +1,39 @@
 #!/usr/bin/env bash
 
-# Ensure WWWUSER is set, default to www-data's UID (usually 33)
+set -e
+
+# Use default www-data UID/GID if not provided
 WWWUSER=${WWWUSER:-33}
 WWWGROUP=${WWWGROUP:-33}
 
-# Update www-data UID and GID if necessary
-usermod -u "$WWWUSER" www-data 2>/dev/null || true
-groupmod -g "$WWWGROUP" www-data 2>/dev/null || true
+# Update www-data UID and GID if different
+CURRENT_UID=$(id -u www-data)
+CURRENT_GID=$(id -g www-data)
 
-# Ensure Composer directory is writable
-mkdir -p /.composer
-chmod -R ug+rw /.composer
-chown -R www-data:www-data /.composer
-
-# Set correct permissions for Laravel storage directories
-if [ -d /var/www/html/storage ] && [ -d /var/www/html/bootstrap/cache ]; then
-    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-    chmod -R ug+rwX /var/www/html/storage /var/www/html/bootstrap/cache
+if [ "$CURRENT_UID" != "$WWWUSER" ]; then
+    usermod -u "$WWWUSER" www-data || true
 fi
 
-# Execute command or start supervisord
-if [ $# -gt 0 ]; then
+if [ "$CURRENT_GID" != "$WWWGROUP" ]; then
+    groupmod -g "$WWWGROUP" www-data || true
+fi
+
+# Ensure /.composer exists and is owned
+mkdir -p /.composer
+chown -R www-data:www-data /.composer
+chmod -R ug+rw /.composer
+
+# Laravel storage and cache directory permissions
+STORAGE_DIR="/var/www/html/storage"
+CACHE_DIR="/var/www/html/bootstrap/cache"
+
+if [ -d "$STORAGE_DIR" ] && [ -d "$CACHE_DIR" ]; then
+    chown -R www-data:www-data "$STORAGE_DIR" "$CACHE_DIR"
+    chmod -R ug+rwX "$STORAGE_DIR" "$CACHE_DIR"
+fi
+
+# Execute passed command or fallback to supervisord
+if [ "$#" -gt 0 ]; then
     exec gosu www-data "$@"
 else
     exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

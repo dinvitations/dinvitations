@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Filament\Resources\OrdersResource;
 use App\Models\Order;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -70,7 +71,7 @@ class LatestOrders extends BaseWidget
                     ->default('active')
             ])
             ->actions([
-                Action::make('open')
+                ViewAction::make('open')
                     ->label('Open')
                     ->url(fn(Order $record): string => OrdersResource::getUrl('edit', ['record' => $record]))
                     ->visible(fn(Order $order) => auth()->user()->can('view', $order)),
