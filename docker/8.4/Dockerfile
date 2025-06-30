@@ -2,7 +2,8 @@ FROM ubuntu:24.04
 
 LABEL maintainer="Taylor Otwell"
 
-ARG WWWGROUP
+ARG WWWUSER=sail
+ARG WWWGROUP=sail
 ARG NODE_VERSION=22
 ARG MYSQL_CLIENT="mysql-client"
 ARG POSTGRES_VERSION=17

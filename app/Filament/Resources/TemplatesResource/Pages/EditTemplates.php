@@ -117,7 +117,7 @@ class EditTemplates extends EditRecord
             ]);
         }
 
-        Cache::forget("template_builder_data_{$record->id}");
+        Cache::forget("template_view_data_{$record->id}");
     }
 
     public static string | Alignment $formActionsAlignment = Alignment::Between;

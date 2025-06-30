@@ -85,7 +85,7 @@ class TemplatesResource extends Resource
                                     return;
                                 }
 
-                                $cacheKey = "template_builder_data_{$record->id}";
+                                $cacheKey = "template_view_data_{$record->id}";
 
                                 $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($record) {
                                     $types = array_keys(TemplateView::getTypes());
@@ -138,7 +138,8 @@ class TemplatesResource extends Resource
                                 'grapesjs-tabs',
                                 'grapesjs-tooltip',
                                 'grapesjs-typed',
-                                'grapesjs-uppy',
+                                'grapesjs-touch',
+                                // 'grapesjs-uppy',
                                 // 'grapesjs-tailwind',
                                 // 'grapesjs-preset-webpage',
                                 // 'grapesjs-custom-code',
@@ -197,12 +198,12 @@ class TemplatesResource extends Resource
                     Tables\Columns\TextColumn::make('slug')
                         ->label('Slug')
                         ->formatStateUsing(function ($record) {
-                            $url = route('templates.show', ['slug' => $record->slug]);
+                            $url = route('templates.show', ['slug' => $record->slug, 'type' => 'template']);
                             $cleanUrl = Str::after($url, '://');
                             return Str::limit($cleanUrl, 35, '...');
                         })
                         ->tooltip(function ($record) {
-                            $url = route('templates.show', ['slug' => $record->slug]);
+                            $url = route('templates.show', ['slug' => $record->slug, 'type' => 'template']);
                             return Str::after($url, '://');
                         })
                         ->searchable(),
@@ -220,7 +221,7 @@ class TemplatesResource extends Resource
                 Tables\Actions\ViewAction::make()
                     ->label('Visit link')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn($record) => route('templates.show', ['slug' => $record->slug]))
+                    ->url(fn($record) => route('templates.show', ['slug' => $record->slug, 'type' => 'template']))
                     ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
@@ -248,7 +249,7 @@ class TemplatesResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        if (auth()->user()->hasRole(Role::ROLES['wedding_organizer'])) {
+        if (auth()->user()->isWO()) {
             $query->whereHas('event', function (Builder $query) {
                 $query->where('name', 'ILIKE', '%wedding%')
                     ->orWhere('name', 'ILIKE', '%nikah%');

@@ -5,7 +5,9 @@ namespace App\Models;
 use Askedio\SoftCascade\Traits\SoftCascadeTrait;
 use Exception;
 use Filament\Facades\Filament;
+use Filament\Models\Contracts\FilamentUser;
 use Filament\Notifications\Auth\VerifyEmail;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,7 +17,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -104,6 +106,15 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify($notification);
     }
 
+    /**
+     * Allow all users to access the Filament panel.
+     * See https://filamentphp.com/docs/3.x/panels/installation#allowing-users-to-access-a-panel
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true;
+    }
+
     public function organizer()
     {
         return $this->belongsTo(__CLASS__, 'organizer_id');
@@ -125,7 +136,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Check whether the user is an organizer
      */
-    public function isOrganizer(string $role = null): bool
+    public function isOrganizer(?string $role = null): bool
     {
         if (!empty($role))
             return $this->hasRole($role);
@@ -137,9 +148,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check whether the user is Wedding Organizer
+     */
+    public function isWO(): bool
+    {
+        return $this->hasRole(Role::ROLES['wedding_organizer']);
+    }
+
+    /**
      * Check whether the user is a client
      */
-    public function isClient(string $role = null): bool
+    public function isClient(): bool
     {
         return $this->hasRole(Role::ROLES['client']);
     }
