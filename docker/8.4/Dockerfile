@@ -64,6 +64,9 @@ RUN apt-get update && \
         postgresql-client-$POSTGRES_VERSION \
         nodejs yarn \
     && npm install -g npm pnpm bun \
+    && curl -sS https://getcomposer.org/installer | php \
+    && mv composer.phar /usr/local/bin/composer \
+    && chmod +x /usr/local/bin/composer \
     && apt-get -y autoremove && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
