@@ -4,37 +4,35 @@ namespace App\Models;
 
 use Askedio\SoftCascade\Traits\SoftCascadeTrait;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Guest extends Model
+class GuestGroup extends Model
 {
-    /** @use HasFactory<\Database\Factories\GuestFactory> */
+    /** @use HasFactory<\Database\Factories\GuestGroupFactory> */
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
     use SoftCascadeTrait;
-    use HasUuids;
 
     protected $keyType = 'string';
     public $incrementing = false;
+    protected $softCascade = ['guests'];
 
     protected $fillable = [
-        'guest_group_id',
+        'id',
+        'customer_id',
         'name',
-        'phone_number',
-        'type_default',
     ];
 
-    protected $softCascade = ['invitationGuests'];
-
-    public function guest_group()
+    public function customer()
     {
-        return $this->belongsTo(GuestGroup::class);
+        return $this->belongsTo(User::class, 'customer_id');
     }
 
-    public function invitationGuests()
+    public function guests()
     {
-        return $this->hasMany(InvitationGuest::class);
+        return $this->hasMany(Guest::class);
     }
 }

@@ -15,15 +15,13 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuid('order_id');
             $table->uuid('template_id')->nullable();
-            $table->string('event_name')->index()->nullable();
-            $table->string('organizer_name')->index()->nullable();
+            $table->string('name')->index()->nullable();
             $table->string('slug')->unique()->nullable();
             $table->timestamp('date_start')->nullable();
             $table->timestamp('date_end')->nullable();
-            $table->string('phone_number')->nullable();
-            $table->text('message')->nullable();
+            $table->text('whatsapp_message')->nullable();
             $table->text('location')->nullable();
-            $table->string('location_latlng')->nullable();
+            $table->string('location_latlong')->nullable();
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
