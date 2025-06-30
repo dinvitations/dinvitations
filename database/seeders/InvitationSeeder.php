@@ -11,17 +11,17 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class HistoryOrdersSeeder extends Seeder
+class InvitationSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        // Get or create a client user
-        $client = User::role(Role::ROLES['client'])->inRandomOrder()->first() ?? User::factory()->create()->assignRole(Role::ROLES['client']);
+        // Use an existing client or create a new one with the 'client' role
+        $client = User::role(Role::ROLES['client'])->inRandomOrder()->first() ?? User::factory()->client()->create();
 
-        // Create 5 orders with descending creation dates
+        // Create a random number of orders (e.g. 3–5), all inactive by default
         $orders = Order::factory()
             ->count(rand(3, 5))
             ->create([
@@ -39,7 +39,7 @@ class HistoryOrdersSeeder extends Seeder
             if ($order->id === $latestOrder->id) {
                 $invitation = Invitation::factory()->create([
                     'order_id' => $order->id,
-                    'published_at' => now()->subDays(30),
+                    'published_at' => null,
                 ]);
             } else {
                 $dateStart = now()->subDays(rand(10, 30));
@@ -55,14 +55,14 @@ class HistoryOrdersSeeder extends Seeder
             $invitations->push($invitation);
         }
 
-        // Create 100 guests for the client
+        // Create 20–30 guests for the client
         $guests = Guest::factory()
-            ->count(100)
+            ->count(rand(20, 30))
             ->create(['user_id' => $client->id]);
 
-        // Attach 50-100 guests to each invitation
+        // Attach 10–15 guests to each invitation
         foreach ($invitations as $invitation) {
-            $randomGuests = $guests->random(rand(50, 100));
+            $randomGuests = $guests->random(rand(10, 15));
             foreach ($randomGuests as $guest) {
                 InvitationGuest::factory()
                     ->forInvitationWithTimestamps($invitation)

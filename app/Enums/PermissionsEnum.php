@@ -21,4 +21,14 @@ enum PermissionsEnum: string
 
     case MANAGE_TEMPLATES = 'manage templates';
     case VIEW_ANY_TEMPLATES = 'view any templates';
+
+    case MANAGE_GUESTS = 'manage guests';
+    case VIEW_ANY_GUESTS = 'view any guests';
+    case CREATE_GUESTS = 'create guests';
+    case VIEW_GUESTS = 'view guests';
+    case EDIT_GUESTS = 'edit guests';
+    case DELETE_ANY_GUESTS = 'delete any guests';
+    case DELETE_GUESTS = 'delete guests';
+    case RESTORE_ANY_GUESTS = 'restore any guests';
+    case RESTORE_GUESTS = 'restore guests';
 }

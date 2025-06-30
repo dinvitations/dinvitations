@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             FeatureSeeder::class,
             EventSeeder::class,
             PackageSeeder::class,
+
+            // GuestGroupSeeder::class,
+            // GuestSeeder::class,
         ]);
     }
 }

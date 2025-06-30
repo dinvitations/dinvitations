@@ -16,7 +16,6 @@ class LastAttendance extends BaseWidget
 {
     protected int|string|array $columnSpan = 'full';
 
-
     protected function getTableHeading(): string | Htmlable | null
     {
         $invitation = Invitation::whereNotNull('published_at')
@@ -32,7 +31,7 @@ class LastAttendance extends BaseWidget
                     ->replace('-', ' ')
                     ->title();
 
-        return $invitation?->name ? $heading . ' - ' . $invitation?->name : $heading;
+        return $invitation?->event_name ? $heading . ' - ' . $invitation?->event_name : $heading;
     }
 
     public function table(Table $table): Table
@@ -77,7 +76,12 @@ class LastAttendance extends BaseWidget
                         'warning' => 'vip',
                         'danger' => 'vvip',
                     ])
-                    ->formatStateUsing(fn($state) => strtoupper($state)),
+                    ->formatStateUsing(fn($state) => match ($state) {
+                        'reg' => 'General',
+                        'vip' => 'VIP',
+                        'vvip' => 'VVIP',
+                        default => strtoupper($state),
+                    }),
             ])
             ->actions([
                 ViewAction::make('open')

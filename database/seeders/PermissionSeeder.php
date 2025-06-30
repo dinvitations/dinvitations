@@ -84,6 +84,34 @@ class PermissionSeeder extends Seeder
                 Role::ROLES['wedding_organizer'],
                 Role::ROLES['client'],
             ],
+
+            PermissionsEnum::MANAGE_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
+            PermissionsEnum::VIEW_ANY_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
+            PermissionsEnum::CREATE_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
+            PermissionsEnum::VIEW_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
+            PermissionsEnum::EDIT_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
+            PermissionsEnum::DELETE_ANY_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
+            PermissionsEnum::DELETE_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
+            PermissionsEnum::RESTORE_ANY_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
+            PermissionsEnum::RESTORE_GUESTS->value => [
+                Role::ROLES['client'],
+            ],
         ];
 
         foreach ($permissions as $permission => $roles) {
