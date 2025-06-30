@@ -6,6 +6,7 @@ use App\Filament\Resources\InvitationTemplateResource\Pages;
 use App\Models\Invitation;
 use App\Models\Template;
 use App\Models\TemplateView;
+use App\Support\Constants;
 use Dotswan\FilamentGrapesjs\Fields\GrapesJs;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -17,6 +18,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use PHPUnit\TextUI\Configuration\Constant;
 
 class InvitationTemplateResource extends Resource
 {
@@ -49,6 +51,7 @@ class InvitationTemplateResource extends Resource
                                     ->label('Slug')
                                     ->formatStateUsing(fn($record) => $record->slug ?? Str::slug($record->event_name))
                                     ->required()
+                                    ->notIn(Constants::get('MENU', 'slug'))
                                     ->unique(ignoreRecord: true)
                                     ->maxLength(50),
                                 Forms\Components\DateTimePicker::make('published_at')
@@ -72,16 +75,16 @@ class InvitationTemplateResource extends Resource
                                     return;
                                 }
 
-                                $invitationHasViews = $record && $record->views()->exists();
+                                $useRecordViews = $record && $record->template_id === $template->id && $record->views()->exists();
 
-                                $cacheKey = $invitationHasViews
+                                $cacheKey = $useRecordViews
                                     ? "invitation_view_data_{$record->id}"
                                     : "template_view_data_{$template->id}";
 
-                                $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($invitationHasViews, $record, $template) {
+                                $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($useRecordViews, $record, $template) {
                                     $types = array_keys(TemplateView::getTypes());
 
-                                    $views = ($invitationHasViews ? $record->views() : $template->views())
+                                    $views = ($useRecordViews ? $record->views() : $template->views())
                                         ->with('file')
                                         ->whereIn('type', $types)
                                         ->get()
@@ -201,12 +204,12 @@ class InvitationTemplateResource extends Resource
                     Tables\Columns\TextColumn::make('slug')
                         ->label('Slug')
                         ->formatStateUsing(function ($record) {
-                            $url = route('templates.show', ['slug' => $record->slug, 'type' => 'template']);
+                            $url = route('templates.show', ['slug' => $record->slug]);
                             $cleanUrl = Str::after($url, '://');
                             return Str::limit($cleanUrl, 35, '...');
                         })
                         ->tooltip(function ($record) {
-                            $url = route('templates.show', ['slug' => $record->slug, 'type' => 'template']);
+                            $url = route('templates.show', ['slug' => $record->slug]);
                             return Str::after($url, '://');
                         })
                         ->searchable(),
@@ -224,7 +227,7 @@ class InvitationTemplateResource extends Resource
                 Tables\Actions\Action::make('view')
                     ->label('Visit link')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn($record) => route('templates.show', ['slug' => $record->slug, 'type' => 'template']))
+                    ->url(fn($record) => route('templates.show', ['slug' => $record->slug]))
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('choose')
                     ->icon('heroicon-s-pencil-square')

@@ -11,8 +11,11 @@ class Constants
         ['slug' => 'orders', 'name' => 'Orders', 'type' => 'admin'],
         ['slug' => 'customers', 'name' => 'Customers', 'type' => 'admin'],
         ['slug' => 'admins', 'name' => 'Admins', 'type' => 'admin'],
+        ['slug' => 'events', 'name' => 'Event Categories', 'type' => 'admin'],
+        ['slug' => 'packages', 'name' => 'Package Categories', 'type' => 'admin'],
 
-        ['slug' => 'invitations', 'name' => 'Invitations', 'type' => 'client'],
+        ['slug' => 'invitations', 'name' => 'Event Details', 'type' => 'client'],
+        ['slug' => 'invitation-templates', 'name' => 'Templates', 'type' => 'client'],
         ['slug' => 'guests', 'name' => 'Guests', 'type' => 'client'],
         ['slug' => 'history-orders', 'name' => 'History Orders', 'type' => 'client'],
 
