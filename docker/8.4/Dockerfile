@@ -24,7 +24,7 @@ RUN apt-get update && apt-get upgrade -y && \
     mkdir -p /etc/apt/keyrings && \
     apt-get install -y --no-install-recommends \
         gnupg gosu curl ca-certificates zip unzip git \
-        supervisor sqlite3 libcap2-bin libpng-dev nginx \
+        supervisor sqlite3 libcap2-bin libpng-dev \
         python3 dnsutils librsvg2-bin fswatch ffmpeg nano
 
 # PHP repo
@@ -81,7 +81,6 @@ RUN groupmod -g $WWWGROUP www-data
 # Add config files (you’ll provide these)
 COPY start-container /usr/local/bin/start-container
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY nginx.conf /etc/nginx/nginx.conf
 COPY php-fpm.conf /etc/php/${PHP_VERSION}/fpm/php-fpm.conf
 COPY php.ini /etc/php/${PHP_VERSION}/fpm/conf.d/99-custom.ini
 
