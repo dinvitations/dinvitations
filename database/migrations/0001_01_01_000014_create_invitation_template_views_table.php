@@ -20,6 +20,11 @@ return new class extends Migration
             $table->longText('content')->nullable();
             $table->timestamps();
 
+            $table->foreign('invitation_id')
+                ->references('id')
+                ->on('invitations')
+                ->onDelete('cascade');
+
             $table->foreign('template_id')
                 ->references('id')
                 ->on('templates')
