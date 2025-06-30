@@ -25,6 +25,7 @@ class ShowTemplates extends Component
 
     public function mount(string $slug, ?string $type = null)
     {
+        $type = $type ?? request()->query('type', 'template');
         if ($type == 'invitation') {
             $this->record = Invitation::where('slug', $slug)->firstOrFail();
         } elseif ($type == 'template') {

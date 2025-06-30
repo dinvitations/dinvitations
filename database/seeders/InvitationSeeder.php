@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Guest;
+use App\Models\GuestGroup;
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use App\Models\Order;
@@ -55,10 +56,19 @@ class InvitationSeeder extends Seeder
             $invitations->push($invitation);
         }
 
-        // Create 20–30 guests for the client
-        $guests = Guest::factory()
-            ->count(rand(20, 30))
-            ->create(['user_id' => $client->id]);
+        // Create 2–3 guest groups for the client
+        $guestGroups = GuestGroup::factory(rand(2, 3))
+            ->create(['customer_id' => $client->id]);
+
+        // Create guests for each group
+        $guests = collect();
+        foreach ($guestGroups as $guestGroup) {
+            $groupGuests = Guest::factory(rand(8, 12))
+                ->create([
+                    'guest_group_id' => $guestGroup->id,
+                ]);
+            $guests = $guests->merge($groupGuests);
+        }
 
         // Attach 10–15 guests to each invitation
         foreach ($invitations as $invitation) {

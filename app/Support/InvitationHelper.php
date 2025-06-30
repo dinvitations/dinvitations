@@ -25,7 +25,7 @@ class InvitationHelper
                 $guest->name,
                 $invitation->date_end->format('d F Y')
             ],
-            $invitation->whatsapp_message
+            $invitation->message
         );
     }
 
@@ -49,7 +49,7 @@ class InvitationHelper
                 $guest->name,
                 $invitation->date_end->format('d F Y')
             ],
-            $invitation->whatsapp_message
+            $invitation->message
         );
     }
 }
