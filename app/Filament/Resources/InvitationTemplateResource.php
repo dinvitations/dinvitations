@@ -72,16 +72,16 @@ class InvitationTemplateResource extends Resource
                                     return;
                                 }
 
-                                $invitationHasViews = $record && $record->views()->exists();
+                                $useRecordViews = $record && $record->template_id === $template->id && $record->views()->exists();
 
-                                $cacheKey = $invitationHasViews
+                                $cacheKey = $useRecordViews
                                     ? "invitation_view_data_{$record->id}"
                                     : "template_view_data_{$template->id}";
 
-                                $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($invitationHasViews, $record, $template) {
+                                $data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($useRecordViews, $record, $template) {
                                     $types = array_keys(TemplateView::getTypes());
 
-                                    $views = ($invitationHasViews ? $record->views() : $template->views())
+                                    $views = ($useRecordViews ? $record->views() : $template->views())
                                         ->with('file')
                                         ->whereIn('type', $types)
                                         ->get()
