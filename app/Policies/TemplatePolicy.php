@@ -30,7 +30,7 @@ class TemplatePolicy
      */
     public function view(User $user, Template $template): bool
     {
-        return false;
+        return $user->hasPermissionTo(PermissionsEnum::VIEW_TEMPLATES);
     }
 
     /**

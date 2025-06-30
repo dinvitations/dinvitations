@@ -6,7 +6,9 @@ use App\Filament\Resources\OrdersResource;
 use App\Filament\Widgets\LastAttendance;
 use App\Filament\Widgets\LatestOrders;
 use App\Filament\Widgets\StatsOverview;
+use App\Models\Order;
 use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Actions\ViewAction;
 use Filament\Pages\Dashboard as BaseDashboard;
 
@@ -29,9 +31,10 @@ class Dashboard extends BaseDashboard
             ];
         } else {
             $actions = [
-                Action::make('new_order')
+                CreateAction::make('new_order')
                     ->label('New Order')
-                    ->url(OrdersResource::getUrl('create')),
+                    ->url(OrdersResource::getUrl('create'))
+                    ->visible(fn () => $user->can('create', Order::class))
             ];
         }
 

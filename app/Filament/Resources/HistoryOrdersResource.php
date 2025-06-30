@@ -11,6 +11,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -75,7 +76,7 @@ class HistoryOrdersResource extends Resource
                     ->icon('heroicon-o-arrow-down-tray')
                     ->default('Download')
                     ->action(
-                        Action::make('download')
+                        ViewAction::make('download')
                             ->action(function ($record) {
                                 $invitation = $record->invitation;
 
