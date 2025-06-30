@@ -49,6 +49,7 @@ class InvitationTemplateResource extends Resource
                                     ->label('Slug')
                                     ->formatStateUsing(fn($record) => $record->slug ?? Str::slug($record->event_name))
                                     ->required()
+                                    ->notIn(Constants::get('MENU', 'slug'))
                                     ->unique(ignoreRecord: true)
                                     ->maxLength(50),
                                 Forms\Components\DateTimePicker::make('published_at')
