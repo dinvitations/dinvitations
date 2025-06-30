@@ -22,13 +22,15 @@ class Invitation extends Model
     protected $fillable = [
         'order_id',
         'template_id',
-        'name',
+        'event_name',
+        'organizer_name',
         'slug',
         'date_start',
         'date_end',
-        'whatsapp_message',
+        'phone_number',
+        'message',
         'location',
-        'location_latlong',
+        'location_latlng',
         'published_at',
     ];
 
@@ -40,6 +42,20 @@ class Invitation extends Model
 
     protected $softCascade = ['guests'];
 
+    public const MESSAGE = <<<'HTML'
+            <p>📩 You're Invited!<br><br>
+            Hi [Guest Name], kami mengundang Anda untuk hadir di acara [Event Name] yang akan kami selenggarakan.<br><br>
+            📆 Tanggal: [Start Date] s/d [End Date]<br>
+            ⏰ Waktu: [Start Time] s/d [End Time]&nbsp;<br>
+            📍 Lokasi: [Event Location]<br><br>
+            Untuk melihat detail undangan dan konfirmasi kehadiran Anda, silakan buka tautan berikut: &nbsp;<br>
+            🔗 [Link Invitation]<br><br>
+            Kehadiran Anda akan menjadi kehormatan bagi kami. &nbsp;<br>
+            Sampai jumpa di hari istimewa ini! 💐<br><br>
+            Salam hangat, &nbsp;<br>
+            [Organizer’s Name]</p>
+        HTML;
+
     public function order()
     {
         return $this->belongsTo(Order::class);
@@ -48,6 +64,11 @@ class Invitation extends Model
     public function template()
     {
         return $this->belongsTo(Template::class);
+    }
+
+    public function views()
+    {
+        return $this->hasMany(InvitationTemplateView::class);
     }
 
     public function guests()

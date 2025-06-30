@@ -20,7 +20,7 @@ class Guest extends Model
     public $incrementing = false;
 
     protected $fillable = [
-        'user_id',
+        'guest_group_id',
         'name',
         'phone_number',
         'type_default',
@@ -28,9 +28,9 @@ class Guest extends Model
 
     protected $softCascade = ['invitationGuests'];
 
-    public function user()
+    public function guest_group()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(GuestGroup::class);
     }
 
     public function invitationGuests()

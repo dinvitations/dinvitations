@@ -36,10 +36,21 @@ class DashboardClientSeeder extends Seeder
         $invitations = collect();
 
         foreach ($orders as $order) {
-            $invitation = Invitation::factory()->create([
-                'order_id' => $order->id,
-                'published_at' => now(),
-            ]);
+            if ($order->id === $latestOrder->id) {
+                $invitation = Invitation::factory()->create([
+                    'order_id' => $order->id,
+                    'published_at' => now()->subDays(30),
+                ]);
+            } else {
+                $dateStart = now()->subDays(rand(10, 30));
+                $dateEnd = (clone $dateStart)->addHours(rand(4, 72));
+
+                $invitation = Invitation::factory()->create([
+                    'order_id' => $order->id,
+                    'date_start' => $dateStart,
+                    'date_end' => $dateEnd,
+                ]);
+            }
 
             $invitations->push($invitation);
         }
@@ -53,10 +64,11 @@ class DashboardClientSeeder extends Seeder
         foreach ($invitations as $invitation) {
             $randomGuests = $guests->random(rand(10, 15));
             foreach ($randomGuests as $guest) {
-                InvitationGuest::factory()->create([
-                    'guest_id' => $guest->id,
-                    'invitation_id' => $invitation->id,
-                ]);
+                InvitationGuest::factory()
+                    ->forInvitationWithTimestamps($invitation)
+                    ->create([
+                        'guest_id' => $guest->id
+                    ]);
             }
         }
     }

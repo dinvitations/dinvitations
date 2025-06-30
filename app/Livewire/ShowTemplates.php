@@ -2,9 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Models\Invitation;
+use App\Models\InvitationTemplateView;
 use Livewire\Component;
 use App\Models\Template;
 use App\Models\TemplateView;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
@@ -12,7 +15,7 @@ use Livewire\Attributes\Layout;
 #[Layout('components.layouts.show-templates')]
 class ShowTemplates extends Component
 {
-    public ?Template $record = null;
+    public ?Model $record = null;
 
     public array $data = [
         'html' => '',
@@ -20,22 +23,28 @@ class ShowTemplates extends Component
         'js' => '',
     ];
 
-    public function mount(string $slug)
+    public function mount(string $slug, ?string $type = null)
     {
-        $this->record = Template::where('slug', $slug)->firstOrFail();
+        if ($type == 'invitation') {
+            $this->record = Invitation::where('slug', $slug)->firstOrFail();
+        } elseif ($type == 'template') {
+            $this->record = Template::where('slug', $slug)->firstOrFail();
+        }
 
-        $cacheKey = "template_builder_data_{$this->record->id}";
+        $cacheKey = $type == 'invitation'
+            ? "invitation_view_data_{$this->record->id}"
+            : "template_view_data_{$this->record->id}";
 
-        $this->data = Cache::remember($cacheKey, now()->addMinutes(10), function () {
-            $types = array_keys(TemplateView::getTypes());
+        $this->data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($type) {
+            $types = $type == 'invitation' ? InvitationTemplateView::getTypes() : TemplateView::getTypes();
 
             $views = $this->record->views()
                 ->with('file')
-                ->whereIn('type', $types)
+                ->whereIn('type', array_keys($types))
                 ->get()
                 ->keyBy('type');
 
-            $getContent = function (?TemplateView $view): string {
+            $getContent = function ($view): string {
                 if (!$view || !$view->file) {
                     return '';
                 }
