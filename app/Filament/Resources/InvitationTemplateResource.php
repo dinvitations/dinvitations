@@ -158,8 +158,16 @@ class InvitationTemplateResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $query = Template::query();
+        if (auth()->user()->organizer->isWO()) {
+            $query->whereHas('event', function (Builder $query) {
+                $query->where('name', 'ILIKE', '%wedding%')
+                    ->orWhere('name', 'ILIKE', '%nikah%');
+            });
+        }
+
         return $table
-            ->query(Template::query())
+            ->query($query)
             ->defaultPaginationPageOption(6)
             ->paginationPageOptions([6, 9, 12, 15])
             ->emptyStateHeading('No template yet')
@@ -262,20 +270,6 @@ class InvitationTemplateResource extends Resource
                         ]);
                     }),
             ]);
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        $query = parent::getEloquentQuery();
-
-        if (auth()->user()->organizer->isWO()) {
-            $query->whereHas('event', function (Builder $query) {
-                $query->where('name', 'ILIKE', '%wedding%')
-                    ->orWhere('name', 'ILIKE', '%nikah%');
-            });
-        }
-
-        return $query;
     }
 
     public static function getPages(): array
