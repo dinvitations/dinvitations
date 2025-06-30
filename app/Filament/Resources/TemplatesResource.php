@@ -198,12 +198,12 @@ class TemplatesResource extends Resource
                     Tables\Columns\TextColumn::make('slug')
                         ->label('Slug')
                         ->formatStateUsing(function ($record) {
-                            $url = route('templates.show', ['slug' => $record->slug, 'type' => 'template']);
+                            $url = route('templates.show', ['slug' => $record->slug]);
                             $cleanUrl = Str::after($url, '://');
                             return Str::limit($cleanUrl, 35, '...');
                         })
                         ->tooltip(function ($record) {
-                            $url = route('templates.show', ['slug' => $record->slug, 'type' => 'template']);
+                            $url = route('templates.show', ['slug' => $record->slug]);
                             return Str::after($url, '://');
                         })
                         ->searchable(),
@@ -221,7 +221,7 @@ class TemplatesResource extends Resource
                 Tables\Actions\ViewAction::make()
                     ->label('Visit link')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn($record) => route('templates.show', ['slug' => $record->slug, 'type' => 'template']))
+                    ->url(fn($record) => route('templates.show', ['slug' => $record->slug]))
                     ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
