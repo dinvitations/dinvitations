@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             AdminUserSeeder::class,
             // ClientUserSeeder::class,
-
             FeatureSeeder::class,
             EventSeeder::class,
             PackageSeeder::class,

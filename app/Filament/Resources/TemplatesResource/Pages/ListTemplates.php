@@ -29,7 +29,7 @@ class ListTemplates extends ListRecords
 
     public function getTabs(): array
     {
-        if (auth()->user()->hasRole(Role::ROLES['wedding_organizer']) || empty(Event::count())) {
+        if (auth()->user()->isWO() || empty(Event::count())) {
             return [];
         }
 

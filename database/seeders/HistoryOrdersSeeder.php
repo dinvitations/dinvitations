@@ -22,47 +22,53 @@ class HistoryOrdersSeeder extends Seeder
         $client = User::role(Role::ROLES['client'])->inRandomOrder()->first() ?? User::factory()->create()->assignRole(Role::ROLES['client']);
 
         // Create 5 orders with descending creation dates
-        $orders = collect();
-        for ($i = 4; $i >= 0; $i--) {
-            $orders->push(Order::factory()->create([
+        $orders = Order::factory()
+            ->count(rand(3, 5))
+            ->create([
                 'user_id' => $client->id,
-                'created_at' => now()->subMonths($i + 1), // Older first
                 'status' => 'inactive',
-            ]));
-        }
+            ]);
 
-        // Set the latest (newest) order as active
+        // Get the latest order by created_at and set it as active
         $latestOrder = $orders->sortByDesc('created_at')->first();
         $latestOrder->update(['status' => 'active']);
 
         $invitations = collect();
 
-        // Create invitations for each order
         foreach ($orders as $order) {
-            $invitation = Invitation::factory()->create([
-                'order_id' => $order->id,
-                'published_at' => now()->subDays(rand(1, 30)), // All are published
-                'date_end' => now()->addDays(rand(5, 30)),
-            ]);
+            if ($order->id === $latestOrder->id) {
+                $invitation = Invitation::factory()->create([
+                    'order_id' => $order->id,
+                    'published_at' => now()->subDays(30),
+                ]);
+            } else {
+                $dateStart = now()->subDays(rand(10, 30));
+                $dateEnd = (clone $dateStart)->addHours(rand(4, 72));
+
+                $invitation = Invitation::factory()->create([
+                    'order_id' => $order->id,
+                    'date_start' => $dateStart,
+                    'date_end' => $dateEnd,
+                ]);
+            }
 
             $invitations->push($invitation);
         }
 
-        // Create 30–50 guests
+        // Create 100 guests for the client
         $guests = Guest::factory()
-            ->count(rand(30, 50))
+            ->count(100)
             ->create(['user_id' => $client->id]);
 
-        // Attach guests and mark some as attended
+        // Attach 50-100 guests to each invitation
         foreach ($invitations as $invitation) {
-            $randomGuests = $guests->random(rand(10, 20));
-
+            $randomGuests = $guests->random(rand(50, 100));
             foreach ($randomGuests as $guest) {
-                InvitationGuest::factory()->create([
-                    'guest_id' => $guest->id,
-                    'invitation_id' => $invitation->id,
-                    'attended_at' => rand(0, 1) ? now()->subDays(rand(1, 15)) : null, // 50% chance attended
-                ]);
+                InvitationGuest::factory()
+                    ->forInvitationWithTimestamps($invitation)
+                    ->create([
+                        'guest_id' => $guest->id
+                    ]);
             }
         }
     }
