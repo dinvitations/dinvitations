@@ -12,3 +12,8 @@ Route::middleware(VerifyQRApiKey::class)->group(function () {
 Route::get('/qr-pdf', [QRCodeController::class, 'view'])
     ->middleware('signed')
     ->name('api.qr_pdf');
+
+Route::get('/version', function () {
+    $version = trim(shell_exec('git describe --tags --always'));
+    return response()->json(['version' => $version]);
+});
