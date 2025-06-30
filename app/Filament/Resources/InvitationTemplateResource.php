@@ -224,12 +224,12 @@ class InvitationTemplateResource extends Resource
                 'xs' => 1,
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
+                Tables\Actions\ViewAction::make('view')
                     ->label('Visit link')
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->url(fn($record) => route('templates.show', ['slug' => $record->slug]))
                     ->openUrlInNewTab(),
-                Tables\Actions\Action::make('choose')
+                Tables\Actions\EditAction::make('choose')
                     ->icon('heroicon-s-pencil-square')
                     ->label(function ($record) {
                         $invitation = Invitation::whereHas('order', function ($query) {

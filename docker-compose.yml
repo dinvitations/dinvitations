@@ -3,7 +3,7 @@ services:
     build:
       context: ./docker/8.4
       dockerfile: Dockerfile
-    image: invelora/app:latest
+    image: dinvitations/app:latest
     depends_on:
       - pgsql
       - mailpit
@@ -79,11 +79,23 @@ services:
     image: nginx:stable-alpine
     ports:
       - "${APP_PORT:-80}:80"
+      - "${APP_TLS_PORT:-443}:443"
     depends_on:
       - app
     volumes:
       - .:/var/www/html:ro
       - ./docker/8.4/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    networks:
+      - app_net
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 1 & wait $${!}; done'"
     networks:
       - app_net
 

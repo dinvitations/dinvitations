@@ -21,6 +21,7 @@ enum PermissionsEnum: string
 
     case MANAGE_TEMPLATES = 'manage templates';
     case VIEW_ANY_TEMPLATES = 'view any templates';
+    case VIEW_TEMPLATES = 'view templates';
 
     case MANAGE_GUESTS = 'manage guests';
     case VIEW_ANY_GUESTS = 'view any guests';
