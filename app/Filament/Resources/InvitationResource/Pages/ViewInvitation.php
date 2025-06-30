@@ -78,7 +78,7 @@ class ViewInvitation extends ViewRecord
                                     ->suffixAction(
                                         Action::make('preview')
                                             ->icon('heroicon-m-arrow-top-right-on-square')
-                                            ->url(fn ($record) => url('/invitation/' . $record->slug))
+                                            ->url(fn ($record) => route('invitation.show', ['slug' => $record->slug]))
                                             ->openUrlInNewTab()
                                     )
                                     ->visible(fn (Invitation $record) => $record->published_at !== null),

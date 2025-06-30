@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 
-#[Layout('components.layouts.show-templates')]
-class ShowTemplates extends Component
+#[Layout('components.layouts.show-template')]
+class ShowTemplate extends Component
 {
     public ?Model $record = null;
 
@@ -23,21 +23,14 @@ class ShowTemplates extends Component
         'js' => '',
     ];
 
-    public function mount(string $slug, ?string $type = null)
+    public function mount(string $slug)
     {
-        $type = $type ?? request()->query('type', 'template');
-        if ($type == 'invitation') {
-            $this->record = Invitation::where('slug', $slug)->firstOrFail();
-        } elseif ($type == 'template') {
-            $this->record = Template::where('slug', $slug)->firstOrFail();
-        }
+        $this->record = Template::where('slug', $slug)->firstOrFail();
 
-        $cacheKey = $type == 'invitation'
-            ? "invitation_view_data_{$this->record->id}"
-            : "template_view_data_{$this->record->id}";
+        $cacheKey = "template_view_data_{$this->record->id}";
 
-        $this->data = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($type) {
-            $types = $type == 'invitation' ? InvitationTemplateView::getTypes() : TemplateView::getTypes();
+        $this->data = Cache::remember($cacheKey, now()->addMinutes(10), function () {
+            $types = TemplateView::getTypes();
 
             $views = $this->record->views()
                 ->with('file')
@@ -73,7 +66,7 @@ class ShowTemplates extends Component
 
     public function render()
     {
-        return view('livewire.show-templates', [
+        return view('livewire.show-template', [
             'html' => $this->data['html'],
             'css' => $this->data['css'],
             'js' => $this->data['js'],

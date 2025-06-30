@@ -6,6 +6,7 @@ use App\Filament\Resources\InvitationTemplateResource;
 use App\Livewire\ShowTemplates;
 use Doctrine\DBAL\Schema\View;
 use Filament\Actions\EditAction;
+use Filament\Infolists\Components\Actions\Action;
 use Filament\Infolists\Components\Grid;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -42,7 +43,12 @@ class ViewInvitationTemplate extends ViewRecord
                             ->schema([
                                 TextEntry::make('slug')
                                     ->label('Slug')
-                                    ->url(fn($record) => $record->slug ? route('templates.show', ['slug' => $record->slug, 'type' => 'invitation']) : null),
+                                    ->suffixAction(
+                                        Action::make('preview')
+                                            ->icon('heroicon-m-arrow-top-right-on-square')
+                                            ->url(fn ($record) => route('invitation.show', ['slug' => $record->slug]))
+                                            ->openUrlInNewTab()
+                                    ),
                                 TextEntry::make('published_at')
                                     ->label('Published at')
                                     ->dateTime('M d, Y')
@@ -54,12 +60,9 @@ class ViewInvitationTemplate extends ViewRecord
                     ->schema([
                         ViewEntry::make('template')
                             ->label('Template Builder')
-                            ->view('livewire.embed.show-templates')
+                            ->view('livewire.embed.show-invitation')
                             ->viewData(function ($record) {
-                                return [
-                                    'slug' => $record->slug,
-                                    'type' => 'invitation',
-                                ];
+                                return ['slug' => $record->slug];
                             }),
                     ])
             ]);
