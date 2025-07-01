@@ -20,8 +20,8 @@ class InvitationFactory extends Factory
      */
     public function definition(): array
     {
-        $start = now();
-        $end = (clone $start)->addHours(rand(4, 72));
+        $dateStart = now();
+        $dateEnd = $dateStart->copy()->addHours(rand(4, 72));
         $firstName = fake()->unique()->firstName();
         $secondName = fake()->unique()->firstName();
 
@@ -31,8 +31,8 @@ class InvitationFactory extends Factory
             'event_name' => Str::title(fake()->words(3, true)),
             'organizer_name' => "{$firstName} & {$secondName}",
             'slug' => Str::slug(fake()->unique()->words(2, true)),
-            'date_start' => $start,
-            'date_end' => $end,
+            'date_start' => $dateStart,
+            'date_end' => $dateEnd,
             'phone_number' => fake()->e164PhoneNumber(),
             'message' => Invitation::MESSAGE,
             'location' => fake()->address(),
