@@ -32,6 +32,23 @@ if [ -d "$STORAGE_DIR" ] && [ -d "$CACHE_DIR" ]; then
     chmod -R ug+rwX "$STORAGE_DIR" "$CACHE_DIR"
 fi
 
+# Write app version if applicable
+APP_VERSION=${APP_VERSION:-unknown}
+VERSION_FILE="/var/www/html/storage/app/private/version.txt"
+
+mkdir -p "$(dirname "$VERSION_FILE")"
+
+if [ -n "$APP_VERSION" ]; then
+    VERSION="$APP_VERSION"
+elif [ -d /var/www/html/.git ]; then
+    VERSION=$(git -C /var/www/html describe --tags --always 2>/dev/null || echo "unknown")
+else
+    VERSION="unknown"
+fi
+
+echo "$VERSION" > "$VERSION_FILE"
+chown www-data:www-data "$VERSION_FILE"
+
 # Execute passed command or fallback to supervisord
 if [ "$#" -gt 0 ]; then
     exec gosu www-data "$@"

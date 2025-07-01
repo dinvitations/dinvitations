@@ -3,6 +3,10 @@ services:
     build:
       context: ./docker/8.4
       dockerfile: Dockerfile
+      args:
+        WWWUSER: ${WWWUSER:-1000}
+        WWWGROUP: ${WWWGROUP:-1337}
+        APP_VERSION: ${APP_VERSION:-unknown}
     image: dinvitations/app:latest
     depends_on:
       - pgsql
@@ -12,9 +16,8 @@ services:
     expose:
       - "9000"
     environment:
-      WWWUSER: ${WWWUSER:-1000}
-      WWWGROUP: ${WWWGROUP:-1337}
       SUPERVISOR_PHP_USER: www-data
+      APP_VERSION: ${APP_VERSION:-unknown} 
       APP_ENV: '${APP_ENV}'
       APP_KEY: '${APP_KEY}'
       APP_DEBUG: '${APP_DEBUG}'
