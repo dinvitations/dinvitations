@@ -44,7 +44,7 @@ class InvitationSeeder extends Seeder
                 ]);
             } else {
                 $dateStart = now()->subDays(rand(10, 30));
-                $dateEnd = (clone $dateStart)->addHours(rand(4, 72));
+                $dateEnd = $dateStart->copy()->addHours(rand(4, 72));
 
                 $invitation = Invitation::factory()->create([
                     'order_id' => $order->id,
