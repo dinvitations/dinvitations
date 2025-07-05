@@ -38,6 +38,7 @@ return [
             'grapesjs-tooltip' => 'https://unpkg.com/grapesjs-tooltip',
             'grapesjs-component-countdown' => 'https://unpkg.com/grapesjs-component-countdown',
             'grapesjs-plugin-forms' => 'https://unpkg.com/grapesjs-plugin-forms',
+            'grapesjs-touch' => 'https://unpkg.com/grapesjs-touch',
             'grapesjs-typed' => 'https://unpkg.com/grapesjs-typed',
             // 'gjs-quill' => 'js/gjs-quill.min.js',
             // 'grapesjs-calendly' => 'js/grapesjs-calendly.min.js',

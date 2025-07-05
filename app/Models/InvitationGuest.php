@@ -26,6 +26,8 @@ class InvitationGuest extends Model
         'attended_at',
         'souvenir_at',
         'selfie_at',
+        'left_at',
+        'guest_count',
     ];
 
     protected $casts = [
@@ -33,6 +35,7 @@ class InvitationGuest extends Model
         'attended_at' => 'datetime',
         'souvenir_at' => 'datetime',
         'selfie_at' => 'datetime',
+        'left_at' => 'datetime',
     ];
 
     public function invitation()

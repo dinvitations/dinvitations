@@ -4,6 +4,9 @@ namespace App\Filament\Widgets;
 
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
+use Filament\Notifications\Notification;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -47,7 +50,8 @@ class LastAttendance extends BaseWidget
                             }, '=', 1);
                     })
                     ->whereNotNull('attended_at')
-                    ->latest('attended_at')
+                    ->orderByRaw('left_at IS NOT NULL')
+                    ->orderByDesc('attended_at') 
             )
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No attendance yet')
@@ -60,7 +64,12 @@ class LastAttendance extends BaseWidget
 
                 TextColumn::make('attended_at_time')
                     ->label('Time')
-                    ->state(fn(InvitationGuest $record) => $record->attended_at?->format('h:i A'))
+                    ->state(fn ($record) => $record->attended_at)
+                    ->time('h:i A')
+                    ->sortable(),
+
+                TextColumn::make('guest_count')
+                    ->label('Total Guests')
                     ->sortable(),
 
                 TextColumn::make('guest.name')
@@ -84,16 +93,70 @@ class LastAttendance extends BaseWidget
                     }),
             ])
             ->actions([
-                ViewAction::make('open')
-                    ->label('Open')
-                    ->modalHeading('Last Attendance')
-                    ->modalContent(function (InvitationGuest $record) {
-                        return view('filament.widgets.partials.last-attendance-modal', [
-                            'guest' => $record->guest->name,
-                            'category' => strtoupper($record->type),
-                            'attendedAt' => $record->attended_at?->format('M d, Y \a\t h:i A'),
-                        ]);
-                    }),
+                ActionGroup::make([
+                    ViewAction::make('open')
+                        ->label('Open')
+                        ->modalHeading('Last Attendance')
+                        ->modalContent(function (InvitationGuest $record) {
+                            return view('filament.widgets.partials.last-attendance-modal', [
+                                'guest' => $record->guest->name,
+                                'category' => strtoupper($record->type),
+                                'attendedAt' => $record->attended_at?->format('M d, Y \a\t h:i A'),
+                                'souvenirAt' => $record->souvenir_at?->format('M d, Y \a\t h:i A'),
+                                'leftAt' => $record->left_at?->format('M d, Y \a\t h:i A'),
+                                'guestCount' => $record->guest_count,
+                            ]);
+                        }),
+                    Action::make('claimSouvenir')
+                        ->icon('heroicon-m-gift')
+                        ->label('Claim Souvenir')
+                        ->color('gray')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirm Souvenir Claim')
+                        ->modalDescription(fn (InvitationGuest $record) => "Are you sure you want to claim a souvenir for {$record->guest->name}?")
+                        ->action(function (InvitationGuest $record) {
+                            if ($record->souvenir_at) {
+                                Notification::make()
+                                    ->title('Souvenir already claimed.')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+
+                            $record->souvenir_at = now();
+                            $record->save();
+
+                            Notification::make()
+                                ->title('Souvenir claimed successfully.')
+                                ->success()
+                                ->send();
+                        })
+                        ->hidden(fn (InvitationGuest $record) => filled($record->souvenir_at)),
+                    Action::make('markLeft')
+                        ->icon('heroicon-m-arrow-right-on-rectangle')
+                        ->label('Mark as Left')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirm Guest Left')
+                        ->modalDescription(fn (InvitationGuest $record) => "Are you sure you want to mark {$record->guest->name} as left?")
+                        ->action(function (InvitationGuest $record) {
+                            if ($record->left_at) {
+                                Notification::make()
+                                    ->title('Guest already marked as left.')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+
+                            $record->left_at = now();
+                            $record->save();
+
+                            Notification::make()
+                                ->title('Guest marked as left successfully.')
+                                ->success()
+                                ->send();
+                        })
+                        ->hidden(fn (InvitationGuest $record) => filled($record->left_at)),
+                ]),
             ])
             ->defaultSort('attended_at', 'desc')
             ->poll('5s');

@@ -12,6 +12,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
 class QRCodeController extends Controller
@@ -25,14 +26,15 @@ class QRCodeController extends Controller
             $request->validate([
                 'qrPayload' => 'required|array',
                 'qrPayload.id' => 'required|string|exists:invitation_guests,id',
-                'qrPayload.type' => 'required|string|in:attendance',
+                'qrPayload.type' => 'required|string|in:attendance,souvenir',
                 'userId' => 'required|string|exists:users,id',
             ]);
 
             $qrPayload = $request->input('qrPayload');
             $guestId = $qrPayload['id'];
-
+            $type = $qrPayload['type'];
             $userId = $request->input('userId');
+            $guestCount = $request->input('guestCount', 1);
 
             $invitation = Invitation::whereNotNull('published_at')
                 ->whereHas('order', function ($subQuery) use ($userId) {
@@ -63,38 +65,78 @@ class QRCodeController extends Controller
 
             $guest = InvitationGuest::where('id', $guestId)
                 ->where('invitation_id', $invitation->id)
-                ->firstOrFail();
+                ->first();
 
-            if ($guest->attended_at) {
+            if (!$guest) {
                 return response()->json([
-                    'message' => 'This guest has already checked in.',
-                    'guest_id' => $guest->id,
-                ], Response::HTTP_BAD_REQUEST);
+                    'message' => 'Guest not found for this event.',
+                ], Response::HTTP_NOT_FOUND);
             }
 
-            $guest->attended_at = $now;
-            $guest->save();
+            if ($type === 'attendance') {
+                // if ($guest->attended_at) {
+                //     return response()->json(['message' => 'Guest already checked in.'], 400);
+                // }
 
-            $qrPayload = base64_encode(json_encode([
-                'id' => $guest->id,
-                'type' => 'souvenir',
-            ]));
+                $guest->attended_at = $now;
+                $guest->guest_count = $guestCount;
+                $guest->save();
 
-            $signedUrl = URL::signedRoute('api.qr_pdf', [
-                'qr' => $qrPayload,
-                'user' => $userId,
-            ]);
+                $pdfPayload = base64_encode(json_encode([
+                    'id' => $guest->id,
+                    'type' => 'souvenir',
+                ]));
+
+                $signedUrl = URL::signedRoute('api.qr_pdf', [
+                    'qr' => $pdfPayload,
+                    'user' => $userId,
+                ]);
+
+                return response()->json([
+                    'message' => 'Check-in successful.',
+                    'guest_id' => $guest->id,
+                    'pdf_url' => $signedUrl,
+                ]);
+            }
+
+            if ($type === 'souvenir') {
+                if ($guest->souvenir_at) {
+                    return response()->json([
+                        'message' => 'Souvenir already taken.'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+
+                $souvenirClaimed = InvitationGuest::query()
+                    ->where('invitation_id', $invitation->id)
+                    ->whereNotNull('souvenir_at')
+                    ->count();
+
+                $availableSouvenirStock = $invitation->souvenir_stock - $souvenirClaimed;
+
+                if ($availableSouvenirStock <= 0) {
+                    return response()->json([
+                        'message' => 'No more souvenir stock available.'
+                    ], Response::HTTP_BAD_REQUEST);
+                }
+
+                $guest->souvenir_at = $now;
+                $guest->left_at = $now;
+                $guest->save();
+
+                return response()->json([
+                    'message' => 'Souvenir pickup recorded.',
+                    'guest_id' => $guest->id,
+                ]);
+            }
 
             return response()->json([
-                'message' => 'Check-in successful.',
-                'guest_id' => $guest->id,
-                'pdf_url' => $signedUrl,
-            ]);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'Guest not found or does not belong to your invitation.'
-            ], Response::HTTP_NOT_FOUND);
+                'message' => 'Unsupported QR type.'
+            ], Response::HTTP_BAD_REQUEST);
         } catch (Exception $e) {
+            Log::error('QR Code processing error: ' . $e->getMessage(), [
+                'request' => $request->all(),
+                'exception' => $e,
+            ]);
             return response()->json([
                 'message' => 'Something went wrong while processing the QR code. Please try again.',
                 'error' => app()->environment('production') ? null : $e->getMessage(),
@@ -133,7 +175,13 @@ class QRCodeController extends Controller
 
             $guest = InvitationGuest::where('id', $qrPayload['id'])
                 ->where('invitation_id', $invitation->id)
-                ->firstOrFail();
+                ->first();
+
+            if (!$guest) {
+                return response()->json([
+                    'message' => 'Guest not found for this event.',
+                ], Response::HTTP_NOT_FOUND);
+            }
 
             $qrCode = base64_encode(
                 QrCode::format('png')->size(160)->generate(json_encode($qrPayload))
@@ -147,8 +195,6 @@ class QRCodeController extends Controller
             $pdf->setPaper([0, 0, 164.4, 113.4], 'portrait');
 
             return $pdf->stream("invitation_qrcode_{$guest->id}_{$qrPayload['type']}.pdf");
-        } catch (ModelNotFoundException $e) {
-            abort(Response::HTTP_NOT_FOUND, 'Guest not found or you do not have access.');
         } catch (Exception $e) {
             if (!empty($guest) && $guest?->attended_at) {
                 $guest->attended_at = null;

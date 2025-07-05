@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use App\Models\Order;
 use App\Models\Role;
@@ -18,33 +19,41 @@ class StatsOverview extends BaseWidget
         $user = auth()->user();
 
         if ($user->hasRole(Role::ROLES['client'])) {
-            $totalInvitedGuests = InvitationGuest::query()
-                ->whereHas('invitation', function ($query) use ($user) {
-                    $query->whereNotNull('published_at')
-                        ->whereHas('order', function ($subQuery) use ($user) {
-                            $subQuery->where('status', 'active');
-                            $subQuery->where('user_id', $user->id);
-                        }, '=', 1);
+            $totalInvitedGuests = $totalAttendingGuests = $attendanceRate = $availableSeats = $souvenirStock = 0;
+    
+            $invitation = Invitation::query()
+                ->whereHas('order', function (Builder $query) use ($user) {
+                    $query->where('status', 'active');
+                    $query->where('user_id', $user->id);
                 })
-                ->count();
+                ->whereNotNull('published_at')
+                ->first();
 
-            $totalAttendingGuests = InvitationGuest::query()
-                ->whereHas('invitation', function ($query) use ($user) {
-                    $query->whereNotNull('published_at')
-                        ->whereHas('order', function ($subQuery) use ($user) {
-                            $subQuery->where('status', 'active');
-                            $subQuery->where('user_id', $user->id);
-                        }, '=', 1);
-                })
-                ->whereNotNull('attended_at')
-                ->count();
+            if ($invitation) {
+                $totalInvitedGuests = InvitationGuest::query()
+                    ->where('invitation_id', $invitation->id)
+                    ->count();
 
-            $attendanceRate = percent($totalAttendingGuests, $totalInvitedGuests);
+                $totalAttendingGuests = InvitationGuest::query()
+                    ->where('invitation_id', $invitation->id)
+                    ->whereNotNull('attended_at')
+                    ->count();
+
+                $attendanceRate = percent($totalAttendingGuests, $totalInvitedGuests);
+
+                $availableSeats = $invitation->availableSeats();
+                $availableSeats = "{$availableSeats}/{$invitation->total_seats}";
+
+                $availableSouvenirStock = $invitation->availableSouvenirStock();
+                $souvenirStock = "{$availableSouvenirStock}/{$invitation->souvenir_stock}";
+            }
 
             $stats = [
                 Stat::make('Total Invited Guests', $totalInvitedGuests),
                 Stat::make('Total Attending Guests', $totalAttendingGuests),
-                Stat::make('Attendance Rate', $attendanceRate),
+                // Stat::make('Attendance Rate', $attendanceRate),
+                Stat::make('Available Seats', $availableSeats),
+                Stat::make('Souvenir Stock', $souvenirStock),
             ];
         } else {
             $totalCustomers = User::role(Role::ROLES['client'])

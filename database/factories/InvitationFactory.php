@@ -24,6 +24,7 @@ class InvitationFactory extends Factory
         $dateEnd = $dateStart->copy()->addHours(rand(4, 72));
         $firstName = fake()->unique()->firstName();
         $secondName = fake()->unique()->firstName();
+        $souvenirStock = fake()->numberBetween(0, 1000);
 
         return [
             'order_id' => Order::factory(),
@@ -34,6 +35,8 @@ class InvitationFactory extends Factory
             'date_start' => $dateStart,
             'date_end' => $dateEnd,
             'phone_number' => fake()->e164PhoneNumber(),
+            'souvenir_stock' => $souvenirStock,
+            'total_seats' => fake()->numberBetween($souvenirStock + 1, $souvenirStock + 500),
             'message' => Invitation::MESSAGE,
             'location' => fake()->address(),
             'location_latlng' => fake()->latitude() . ',' . fake()->longitude(),
@@ -51,6 +54,8 @@ class InvitationFactory extends Factory
             'date_start' => null,
             'date_end' => null,
             'phone_number' => null,
+            'souvenir_stock' => null,
+            'total_seats' => null,
             'message' => null,
             'location' => null,
             'location_latlng' => null,
