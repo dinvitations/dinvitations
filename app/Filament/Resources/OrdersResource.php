@@ -122,6 +122,11 @@ class OrdersResource extends Resource
                     ->dateTime('M d, Y')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('invitation.date_start')
+                    ->label('Event Date')
+                    ->date('M d, Y')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('package.name')
                     ->label('Package')
                     ->formatStateUsing(function ($state) {
