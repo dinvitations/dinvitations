@@ -28,6 +28,8 @@ class Invitation extends Model
         'date_start',
         'date_end',
         'phone_number',
+        'souvenir_stock',
+        'total_seats',
         'message',
         'location',
         'location_latlng',
@@ -74,5 +76,20 @@ class Invitation extends Model
     public function guests()
     {
         return $this->hasMany(InvitationGuest::class);
+    }
+
+    public function availableSouvenirStock(): int
+    {
+        return max($this->souvenir_stock - $this->guests()->whereNotNull('souvenir_at')->count(), 0);
+    }
+    
+    public function isSouvenirLocked(): bool
+    {
+        return $this->guests()->whereNotNull('souvenir_at')->exists();
+    }
+
+    public function availableSeats(): int
+    {
+        return max($this->total_seats - $this->guests()->whereNotNull('attended_at')->whereNull('left_at')->sum('guest_count'), 0);
     }
 }
