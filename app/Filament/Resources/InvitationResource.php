@@ -7,6 +7,7 @@ use App\Models\Invitation;
 use Dotswan\MapPicker;
 use Filament\Forms;
 use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -111,7 +112,48 @@ class InvitationResource extends Resource
                                     if ($length < 7 || $length > 13) {
                                         $fail('The WhatsApp number must be between 7 and 13 digits.');
                                     }
-                                }),
+                                })->columnSpanFull(),
+
+                            Forms\Components\Hidden::make('unlock_souvenir_stock')
+                                ->default(false)
+                                ->reactive(),
+
+                            Forms\Components\TextInput::make('souvenir_stock')
+                                ->label('Souvenir Stock')
+                                ->numeric()
+                                ->reactive()
+                                ->minValue(fn ($record) => $record ? $record?->availableSouvenirStock() : 0)
+                                ->required()
+                                ->afterStateHydrated(function (TextInput $component) {
+                                    $record = $component->getRecord();
+
+                                    if (! $record) return;
+
+                                    $component->state($record->isSouvenirLocked() ? $record->availableSouvenirStock() : $record->souvenir_stock);
+                                })
+                                ->disabled(fn ($get, $record) => $record?->isSouvenirLocked() && !$get('unlock_souvenir_stock'))
+                                ->dehydrated(fn ($get) => $get('unlock_souvenir_stock'))
+                                ->hint(fn ($record) => $record ? $record->availableSouvenirStock() . ' / ' . $record->souvenir_stock . ' available' : null)
+                                ->suffixAction(
+                                    Action::make('toggleUnlock')
+                                        ->icon(fn ($get) => $get('unlock_souvenir_stock') ? 'heroicon-m-lock-open' : 'heroicon-m-lock-closed')
+                                        ->hiddenLabel()
+                                        ->visible(fn ($record) => $record?->isSouvenirLocked())
+                                        ->action(function ($set, $get, $record) {
+                                            $isCurrentlyUnlocked = $get('unlock_souvenir_stock');
+                                            $set('unlock_souvenir_stock', ! $isCurrentlyUnlocked);
+
+                                            if ($isCurrentlyUnlocked && $record) {
+                                                $set('souvenir_stock', $record->availableSouvenirStock());
+                                            }
+                                        })
+                                ),
+
+                            Forms\Components\TextInput::make('total_seats')
+                                ->label('Total Seats')
+                                ->numeric()
+                                ->minValue(0)
+                                ->required(),
 
                             Forms\Components\Grid::make()
                                 ->schema([

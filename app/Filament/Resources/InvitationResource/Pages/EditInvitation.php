@@ -13,6 +13,15 @@ class EditInvitation extends EditRecord
 
     protected static ?string $title = "Event Details";
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if ($data['unlock_souvenir_stock'] && $this->record) {
+            $data['souvenir_stock'] = $this->record->souvenir_stock + ($data['souvenir_stock'] - $this->record->availableSouvenirStock());
+        }
+
+        return $data;
+    }
+
     protected function getSavedNotification(): ?Notification
     {
         return Notification::make()
