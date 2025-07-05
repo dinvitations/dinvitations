@@ -122,28 +122,31 @@ class InvitationResource extends Resource
                                 ->label('Souvenir Stock')
                                 ->numeric()
                                 ->reactive()
-                                ->minValue(fn ($record) => $record ? $record?->availableSouvenirStock() : 0)
+                                ->minValue(fn ($record) => $record?->availableSouvenirStock() ?? 0)
                                 ->required()
-                                ->afterStateHydrated(function (TextInput $component) {
+                                ->afterStateHydrated(function ($component) {
                                     $record = $component->getRecord();
 
-                                    if (! $record) return;
+                                    if (! $record) {
+                                        $component->state(0);
+                                        return;
+                                    }
 
                                     $component->state($record->isSouvenirLocked() ? $record->availableSouvenirStock() : $record->souvenir_stock);
                                 })
                                 ->disabled(fn ($get, $record) => $record?->isSouvenirLocked() && !$get('unlock_souvenir_stock'))
-                                ->dehydrated(fn ($get) => $get('unlock_souvenir_stock'))
-                                ->hint(fn ($record) => $record ? $record->availableSouvenirStock() . ' / ' . $record->souvenir_stock . ' available' : null)
+                                ->dehydrated(fn ($record, $get) => $record?->isSouvenirLocked() ? $get('unlock_souvenir_stock') : true)
+                                ->hint(fn ($record) => $record?->availableSouvenirStock() ? $record->availableSouvenirStock() . ' / ' . $record->souvenir_stock . ' available' : null)
                                 ->suffixAction(
                                     Action::make('toggleUnlock')
                                         ->icon(fn ($get) => $get('unlock_souvenir_stock') ? 'heroicon-m-lock-open' : 'heroicon-m-lock-closed')
                                         ->hiddenLabel()
                                         ->visible(fn ($record) => $record?->isSouvenirLocked())
                                         ->action(function ($set, $get, $record) {
-                                            $isCurrentlyUnlocked = $get('unlock_souvenir_stock');
-                                            $set('unlock_souvenir_stock', ! $isCurrentlyUnlocked);
+                                            $isUnlocked = $get('unlock_souvenir_stock');
+                                            $set('unlock_souvenir_stock', ! $isUnlocked);
 
-                                            if ($isCurrentlyUnlocked && $record) {
+                                            if ($record && $isUnlocked) {
                                                 $set('souvenir_stock', $record->availableSouvenirStock());
                                             }
                                         })
