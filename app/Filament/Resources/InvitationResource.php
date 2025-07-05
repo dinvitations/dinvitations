@@ -318,7 +318,7 @@ class InvitationResource extends Resource
                                     }),
                             ])->fullWidth(),
 
-                            Forms\Components\RichEditor::make('message')
+                            Forms\Components\MarkdownEditor::make('message')
                                 ->label('Message Content')
                                 ->default(Invitation::MESSAGE)
                                 ->helperText('Keep the placeholders (e.g. [Guest Name]) as is — they will be replaced with real data.')

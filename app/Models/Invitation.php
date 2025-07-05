@@ -44,19 +44,25 @@ class Invitation extends Model
 
     protected $softCascade = ['guests'];
 
-    public const MESSAGE = <<<'HTML'
-            <p>📩 You're Invited!<br><br>
-            Hi [Guest Name], kami mengundang Anda untuk hadir di acara [Event Name] yang akan kami selenggarakan.<br><br>
-            📆 Tanggal: [Start Date] s/d [End Date]<br>
-            ⏰ Waktu: [Start Time] s/d [End Time]&nbsp;<br>
-            📍 Lokasi: [Event Location]<br><br>
-            Untuk melihat detail undangan dan konfirmasi kehadiran Anda, silakan buka tautan berikut: &nbsp;<br>
-            🔗 [Link Invitation]<br><br>
-            Kehadiran Anda akan menjadi kehormatan bagi kami. &nbsp;<br>
-            Sampai jumpa di hari istimewa ini! 💐<br><br>
-            Salam hangat, &nbsp;<br>
-            [Organizer’s Name]</p>
-        HTML;
+    public const MESSAGE = <<<'MARKDOWN'
+📩 **You're Invited!**
+
+Hi [Guest Name], kami mengundang Anda untuk hadir di acara **[Event Name]** yang akan kami selenggarakan.
+
+📆 **Tanggal:** [Start Date] s/d [End Date]  
+⏰ **Waktu:** [Start Time] s/d [End Time]  
+📍 **Lokasi:** [Event Location]
+
+Untuk melihat detail undangan dan konfirmasi kehadiran Anda, silakan buka tautan berikut:  
+🔗 [Link Invitation]
+
+Kehadiran Anda akan menjadi kehormatan bagi kami.  
+Sampai jumpa di hari istimewa ini! 💐
+
+Salam hangat,  
+**[Organizer’s Name]**
+MARKDOWN;
+
 
     public function order()
     {

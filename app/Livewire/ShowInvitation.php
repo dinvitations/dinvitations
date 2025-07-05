@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use App\Models\InvitationTemplateView;
+use App\Support\InvitationHelper;
 use Livewire\Component;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -78,6 +79,7 @@ class ShowInvitation extends Component
                 );
                 $this->data['guest'] = [
                     'id' => $guest->id,
+                    'name' => $guest?->guest?->name,
                     'qrcode' => $qrCode,
                     'rsvp' => !$guest->rsvp
                 ];
@@ -87,10 +89,13 @@ class ShowInvitation extends Component
 
     public function render()
     {
+        $html = InvitationHelper::getInvitation($this->data['html'], $this->data['guest']['name'] ?? null);
+        $js = InvitationHelper::getInvitation($this->data['js'], $this->data['guest']['name'] ?? null);
+
         return view('livewire.show-invitation', [
-            'html' => $this->data['html'],
+            'html' => $html,
             'css' => $this->data['css'],
-            'js' => $this->data['js'],
+            'js' => $js,
             'guest' => $this->data['guest'] ?? null
         ]);
     }
