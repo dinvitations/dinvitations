@@ -73,6 +73,13 @@ class ViewInvitation extends ViewRecord
                                     }),
                                 TextEntry::make('phone_number')
                                     ->label('Whatsapp Number'),
+                                TextEntry::make('souvenir_stock')
+                                    ->label('Souvenir Stock')
+                                    ->getStateUsing(function ($record) {
+                                        return $record->availableSouvenirStock() . ' / ' . $record->souvenir_stock;
+                                    }),
+                                TextEntry::make('total_seats')
+                                    ->label('Total Seats'),
                                 TextEntry::make('slug')
                                     ->label('Slug')
                                     ->suffixAction(

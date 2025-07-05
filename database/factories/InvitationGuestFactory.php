@@ -36,13 +36,15 @@ class InvitationGuestFactory extends Factory
     public function forInvitationWithTimestamps(Invitation $invitation): self
     {
         return $this->state(function () use ($invitation) {
-            [$attendedAt, $souvenirAt, $selfieAt] = $this->generateAttendanceTimestamps($invitation);
+            [$attendedAt, $souvenirAt, $selfieAt, $leftAt] = $this->generateAttendanceTimestamps($invitation);
 
             return [
                 'invitation_id' => $invitation->id,
                 'attended_at'   => $attendedAt,
                 'souvenir_at'   => $souvenirAt,
                 'selfie_at'     => $selfieAt,
+                'left_at'       => $leftAt,
+                'guest_count'    => fake()->numberBetween(1, 5),
             ];
         });
     }
@@ -70,6 +72,15 @@ class InvitationGuestFactory extends Factory
             );
         }
 
-        return [$attendedAt, $souvenirAt, $selfieAt];
+        $leftBase = $selfieAt ?? $souvenirAt ?? $attendedAt;
+        $leftAt = null;
+        if ($leftBase) {
+            $leftAt = fake()->optional(0.7)->dateTimeBetween(
+                Carbon::parse($leftBase)->copy()->addMinute(),
+                $end
+            );
+        }
+
+        return [$attendedAt, $souvenirAt, $selfieAt, $leftAt];
     }
 }
