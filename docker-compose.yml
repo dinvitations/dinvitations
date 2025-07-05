@@ -60,7 +60,6 @@ services:
 
   minio:
     image: 'minio/minio:latest'
-    command: server /data --console-address ":8900"
     ports:
       - '${FORWARD_MINIO_PORT:-9000}:9000'
       - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
@@ -91,7 +90,9 @@ services:
       - ./certbot/www:/var/www/certbot
       - ./certbot/conf:/etc/letsencrypt
     networks:
-      - app_net
+      app_net:
+        aliases:
+          - s3.invelora.com
 
   certbot:
     image: certbot/certbot
