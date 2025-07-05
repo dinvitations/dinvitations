@@ -20,7 +20,10 @@ class Constants
         ['slug' => 'history-orders', 'name' => 'History Orders', 'type' => 'client'],
 
         ['slug' => 'dashboard', 'name' => 'Dashboard', 'type' => 'both'],
-        ['slug' => 'telescope', 'name' => 'Telescope', 'type' => 'both'],
+
+        ['slug' => 'template-views', 'name' => 'Template Views', 'type' => 'global'],
+        ['slug' => 'api', 'name' => 'API', 'type' => 'global'],
+        ['slug' => 'telescope', 'name' => 'Telescope', 'type' => 'global'],
     ];
 
     public static function get(string $name, ?string $pluck = null): Collection | array

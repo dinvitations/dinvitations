@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('invitations', function (Blueprint $table) {
-            $table->unsignedInteger('souvenir_stock')->nullable()->after('date_end');
-            $table->unsignedInteger('total_seats')->nullable()->after('souvenir_stock');
+            $table->unsignedInteger('souvenir_stock')->nullable()->default(0)->after('date_end');
+            $table->unsignedInteger('total_seats')->nullable()->default(0)->after('souvenir_stock');
         });
     }
 
