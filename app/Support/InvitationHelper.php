@@ -52,5 +52,14 @@ class InvitationHelper
             $invitation->message
         );
     }
+
+    public static function getInvitation($data, $guest): string
+    {
+        if ($guest) {
+            return str_replace('[Guest Name]', $guest, $data);
+        }
+
+        return $data;
+    }
 }
 
