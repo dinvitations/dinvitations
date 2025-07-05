@@ -134,26 +134,28 @@ class InvitationTemplateResource extends Resource
                                 'grapesjs-tooltip',
                                 'grapesjs-typed',
                                 'grapesjs-touch',
-                                // 'grapesjs-uppy',
-                                // 'grapesjs-tailwind',
-                                // 'grapesjs-preset-webpage',
-                                // 'grapesjs-custom-code',
-                                // 'grapesjs-plugin-toolbox',
-                                // 'grapesjs-style-easing',
-                                // 'grapesjs-undraw',
-                                // 'grapesjs-style-filter',
-                                // 'gjs-quill',
-                                // 'grapesjs-rulers',
-                                // 'grapesjs-style-gpickr',
-                                // 'grapesjs-calendly',
-                                // 'grapesjs-script-editor',
-                                // 'grapesjs-component-code-editor',
-                                // 'grapesjs-plugin-export',
-                                // 'grapesjs-style-bg',
-                                // 'grapesjs-style-border',
                             ])
                             ->settings([
                                 'disableDrag' => true,
+                                'assetManager' => [
+                                    'upload' => route('grapesjs.upload'),
+                                    'uploadName' => 'files',
+                                    'assets' => File::query()
+                                        ->where('disk', 'uploads')
+                                        ->where('fileable_type', User::class)
+                                        ->where('fileable_id', auth()->user()->id)
+                                        ->get()
+                                        ->map(function ($file) {
+                                            return [
+                                                'src' => Storage::disk($file->disk)->url($file->path),
+                                                'name' => $file->original_name ?? $file->filename,
+                                                'type' => $file->type,
+                                                'mime' => $file->mime_type,
+                                            ];
+                                        })
+                                        ->values()
+                                        ->toArray(),
+                                ],
                             ])
                             ->id('template_builder')
                     ])
