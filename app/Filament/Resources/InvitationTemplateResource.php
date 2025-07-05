@@ -55,7 +55,8 @@ class InvitationTemplateResource extends Resource
                                     ->unique(ignoreRecord: true)
                                     ->maxLength(50),
                                 Forms\Components\DateTimePicker::make('published_at')
-                                    ->label('Published at'),
+                                    ->label('Published at')
+                                    ->required(),
                             ])
                     ]),
 
@@ -229,13 +230,13 @@ class InvitationTemplateResource extends Resource
                     ->icon('heroicon-o-arrow-top-right-on-square')
                     ->url(fn($record) => route('templates.show', ['slug' => $record->slug]))
                     ->openUrlInNewTab(),
-                Tables\Actions\EditAction::make('choose')
+                Tables\Actions\Action::make('choose')
                     ->icon('heroicon-s-pencil-square')
                     ->label(function ($record) {
                         $invitation = Invitation::whereHas('order', function ($query) {
-                            $query->where('status', 'active')
-                                ->where('user_id', auth()->user()->id);
-                        })
+                                $query->where('status', 'active')
+                                    ->where('user_id', auth()->user()->id);
+                            })
                             ->first();
 
                         if ($invitation && $invitation?->template_id === $record->id) {
