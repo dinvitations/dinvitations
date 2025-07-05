@@ -2,13 +2,14 @@
 
 namespace App\Livewire;
 
-use App\Models\Guest;
 use App\Models\Invitation;
+use App\Models\InvitationGuest;
 use App\Models\InvitationTemplateView;
 use Livewire\Component;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -63,20 +64,25 @@ class ShowInvitation extends Component
             ];
         });
 
-        $guestId = request()->query('guest_id');
-        if ($guestId) {
-            $guest = Guest::findOrFail($guestId);
+        $guestId = request()->query('id');
+        if ($guestId && Str::isUuid($guestId)) {
+            $guest = InvitationGuest::find($guestId);
 
-            $qrPayload = [
-                'id' => $guest->id,
-                'type' => 'souvenir',
-            ];
-            $qrCode = base64_encode(
-                QrCode::format('png')->size(160)->generate(json_encode($qrPayload))
-            );
-            $this->data['qrcode'] = $qrCode;
+            if ($guest) {
+                $qrPayload = [
+                    'id' => $guest->id,
+                    'type' => 'attendance',
+                ];
+                $qrCode = base64_encode(
+                    QrCode::format('png')->size(160)->generate(json_encode($qrPayload))
+                );
+                $this->data['guest'] = [
+                    'id' => $guest->id,
+                    'qrcode' => $qrCode,
+                    'rsvp' => !$guest->rsvp
+                ];
+            }
         }
-        
     }
 
     public function render()
@@ -85,7 +91,25 @@ class ShowInvitation extends Component
             'html' => $this->data['html'],
             'css' => $this->data['css'],
             'js' => $this->data['js'],
-            'qrcode' => $this->data['qrcode'] ?? null,
+            'guest' => $this->data['guest'] ?? null
         ]);
+    }
+
+    public function rsvp(string $guestId)
+    {
+        if (!Str::isUuid($guestId)) {
+            return;
+        }
+        
+        $guest = InvitationGuest::find($guestId);
+
+        if ($guest) {
+            $guest->rsvp = true;
+            $guest->save();
+
+            if (isset($this->data['guest']) && $this->data['guest']['id'] == $guestId) {
+                $this->data['guest']['rsvp'] = false;
+            }
+        }
     }
 }
