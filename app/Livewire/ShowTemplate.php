@@ -2,8 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Models\Invitation;
-use App\Models\InvitationTemplateView;
 use Livewire\Component;
 use App\Models\Template;
 use App\Models\TemplateView;
