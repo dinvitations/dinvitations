@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvitationResource\Pages;
 use App\Models\Invitation;
+use App\Models\Order;
 use Dotswan\MapPicker;
 use Filament\Forms;
 use Filament\Forms\Components\Actions;
@@ -29,7 +30,8 @@ class InvitationResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()->isClient();
+        $order = Order::where('status', 'active')->where('user_id', auth()->user()->id)->exists();
+        return auth()->user()->isClient() && $order;
     }
 
     public static function form(Form $form): Form
