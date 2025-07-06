@@ -53,7 +53,7 @@ class InvitationHelper
         );
     }
 
-    public static function getInvitation($data, $guest): string
+    public static function getInvitation($data, $guest = null): string
     {
         if ($guest) {
             return str_replace('[Guest Name]', $guest, $data);
