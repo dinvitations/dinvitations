@@ -45,24 +45,23 @@ class Invitation extends Model
     protected $softCascade = ['guests'];
 
     public const MESSAGE = <<<'MARKDOWN'
-📩 *You're Invited!*
+    📩 *You're Invited!*
 
-Hi [Guest Name], kami mengundang Anda untuk hadir di acara *[Event Name]* yang akan kami selenggarakan.
+    Hi [Guest Name], kami mengundang Anda untuk hadir di acara *[Event Name]* yang akan kami selenggarakan.
 
-📆 *Tanggal:* [Start Date] s/d [End Date]  
-⏰ *Waktu:* [Start Time] s/d [End Time]  
-📍 *Lokasi:* [Event Location]
+    📆 *Tanggal:* [Start Date] s/d [End Date]
+    ⏰ *Waktu:* [Start Time] s/d [End Time]
+    📍 *Lokasi:* [Event Location]
 
-Untuk melihat detail undangan dan konfirmasi kehadiran Anda, silakan buka tautan berikut:  
-🔗 [Link Invitation]
+    Untuk melihat detail undangan dan konfirmasi kehadiran Anda, silakan buka tautan berikut:
+    🔗 [Link Invitation]
 
-Kehadiran Anda akan menjadi kehormatan bagi kami.  
-Sampai jumpa di hari istimewa ini! 💐
+    Kehadiran Anda akan menjadi kehormatan bagi kami.
+    Sampai jumpa di hari istimewa ini! 💐
 
-Salam hangat,  
-*[Organizer Name]*
-MARKDOWN;
-
+    Salam hangat,
+    *[Organizer Name]*
+    MARKDOWN;
 
     public function order()
     {
@@ -88,7 +87,7 @@ MARKDOWN;
     {
         return max($this->souvenir_stock - $this->guests()->whereNotNull('souvenir_at')->count(), 0);
     }
-    
+
     public function isSouvenirLocked(): bool
     {
         return $this->guests()->whereNotNull('souvenir_at')->exists();
