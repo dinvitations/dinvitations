@@ -323,6 +323,17 @@ class InvitationResource extends Resource
                             ])->fullWidth(),
 
                             Forms\Components\MarkdownEditor::make('message')
+                            ->toolbarButtons([
+                                    'bold',         // *bold*
+                                    'italic',       // _italic_
+                                    'strike',       // ~strikethrough~
+                                    'codeBlock',    // ```monospace```
+                                    'blockquote',   // > quote
+                                    'bulletList',   // * or - list
+                                    'orderedList',  // 1. list,
+                                    'undo',
+                                    'redo'
+                                ])
                                 ->label('Message Content')
                                 ->default(Invitation::MESSAGE)
                                 ->helperText('Keep the placeholders (e.g. [Guest Name]) as is — they will be replaced with real data.')

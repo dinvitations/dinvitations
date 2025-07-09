@@ -193,7 +193,7 @@ class GuestTable extends Component implements HasTable, HasForms
                             $this->invitationGuest->id
                         ));
                         $rawPhoneNumber = preg_replace('/\D+/', '', $record->phone_number);
-                        $waMeUrl = "https://wa.me/$rawPhoneNumber?text=$parsedMessage";
+                        $waMeUrl = "https://api.whatsapp.com/send?phone=$rawPhoneNumber&text=$parsedMessage";
                         info($waMeUrl);
 
                         // Generate QR code for guest attendance

@@ -20,7 +20,7 @@ class InvitationHelper
     {
         Carbon::setLocale('id');
 
-        return strip_tags(str_replace(
+        $message = strip_tags(str_replace(
             [
                 '[Guest Name]',
                 '[Event Name]',
@@ -45,6 +45,8 @@ class InvitationHelper
             ],
             $invitation->message
         ));
+
+        return self::formatForWhatsApp($message);
     }
 
     /**
@@ -59,9 +61,8 @@ class InvitationHelper
     {
         Carbon::setLocale('id');
 
-        return strip_tags(str_replace(
+        $message = strip_tags(str_replace(
             [
-                '\n',
                 '[Guest Name]',
                 '[Event Name]',
                 '[Start Date]',
@@ -73,7 +74,6 @@ class InvitationHelper
                 '[Organizer Name]',
             ],
             [
-                '%0a',
                 $guest->name,
                 $invitation->event_name,
                 $invitation->date_start->translatedFormat('l, j F Y'),
@@ -86,6 +86,25 @@ class InvitationHelper
             ],
             $invitation->message
         ));
+
+        return self::formatForWhatsApp($message);
+    }
+
+    /**
+     * Convert Markdown syntax to WhatsApp formatting.
+     */
+    protected static function formatForWhatsApp(string $text): string
+    {
+        // Convert bold: **text** -> *text*
+        $text = preg_replace('/\*\*(.*?)\*\*/s', '*$1*', $text);
+
+        // Convert italic: *text* (if not part of **bold**) -> _text_
+        $text = preg_replace('/(?<!\*)\*(?!\*)(.*?)\*(?<!\*)/s', '_$1_', $text);
+
+        // Convert strikethrough: ~~text~~ -> ~text~
+        $text = preg_replace('/~~(.*?)~~/s', '~$1~', $text);
+
+        return $text;
     }
 
     public static function getInvitation($data, $guest = null): string
