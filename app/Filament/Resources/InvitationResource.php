@@ -17,7 +17,6 @@ use Filament\Support\RawJs;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 class InvitationResource extends Resource
 {
@@ -44,13 +43,7 @@ class InvitationResource extends Resource
                         Forms\Components\Grid::make(2)->schema([
                             Forms\Components\TextInput::make('event_name')
                                 ->label('Event Name')
-                                ->required()
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    $set('slug', Str::slug($state));
-                                }),
-
-                            Forms\Components\Hidden::make('slug'),
+                                ->required(),
 
                             Forms\Components\TextInput::make('organizer_name')
                                 ->label('Organizer\'s Name')
