@@ -138,9 +138,14 @@ class InvitationTemplateResource extends Resource
                                 'grapesjs-touch',
                             ])
                             ->settings([
-                                'disableDrag' => true,
+                                'disableStyles' => true,
+                                'disableBlocks' => true,
                                 'assetManager' => [
                                     'upload' => route('grapesjs.upload'),
+                                    'headers' => [
+                                        'X-CSRF-TOKEN' => csrf_token(),
+                                        'X-USER-ID' => auth()->user()->id,
+                                    ],
                                     'uploadName' => 'files',
                                     'assets' => File::query()
                                         ->where('disk', 'uploads')

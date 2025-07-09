@@ -38,19 +38,42 @@ document.addEventListener("alpine:init", () => {
               grapesInstance.setStyle(this.state.css);
             }
           }
-          if (settings?.disableDrag) {
+          if (settings?.disableBlocks) {
             grapesInstance.getWrapper().find("*").forEach((comp) => {
               comp.set({
                 draggable: false,
                 droppable: false,
                 selectable: true,
                 hoverable: true,
-                highlightable: true
+                highlightable: true,
+                removable: false,
               });
               comp.set("resizable", false);
             });
             grapesInstance.BlockManager.getAll().reset();
-            grapesInstance.on("component:drag:start", (ev) => ev.abort());
+          }
+          if (settings?.disableStyles) {
+              grapesInstance.on('component:selected', comp => {
+                  comp.set({
+                    stylable: [
+                      'background',
+                      'background-color',
+                      'color',
+                      'font-family',
+                      'font-size',
+                      'font-style',
+                      'font-weight',
+                      'letter-spacing',
+                      'line-height',
+                      'text-align',
+                      'text-decoration',
+                      'text-shadow',
+                      'text-transform',
+                      'white-space',
+                      'word-spacing',
+                    ],
+                  });
+              });
           }
         });
         grapesInstance.on("update", () => {

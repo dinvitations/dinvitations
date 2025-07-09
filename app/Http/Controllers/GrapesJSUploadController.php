@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\File;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +19,11 @@ class GrapesJSUploadController extends Controller
             ]);
 
             $uploaded = [];
-            $user = auth()->user();
+
+            $user = User::find($request->header('X-USER-ID'));
+            if (!$user) {
+                return response()->json(['message' => 'Invalid user.'], 403);
+            }
 
             foreach ($request->file('files', []) as $upload) {
                 $uuid = (string) Str::uuid();
@@ -39,8 +44,8 @@ class GrapesJSUploadController extends Controller
                 }
 
                 $file = File::create([
-                    'fileable_type' => $user ? User::class : null,
-                    'fileable_id' => $user?->id,
+                    'fileable_type' => User::class,
+                    'fileable_id' => $user->id,
                     'name' => $filename,
                     'original_name' => $upload->getClientOriginalName(),
                     'filename' => $uuid,
@@ -67,7 +72,7 @@ class GrapesJSUploadController extends Controller
             Log::error('GrapesJS upload failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'user_id' => auth()->id(),
+                'user_id' => $userId,
                 'request' => $request->all(),
             ]);
 
