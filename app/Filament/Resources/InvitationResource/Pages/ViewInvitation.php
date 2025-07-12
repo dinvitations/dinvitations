@@ -102,8 +102,8 @@ class ViewInvitation extends ViewRecord
 
                 Section::make('Message Content')->schema([
                     TextEntry::make('message')
-                        ->label('')
-                        ->html()
+                        ->hiddenLabel()
+                        ->markdown()
                         ->columnSpanFull(),
                 ])->collapsible(),
 

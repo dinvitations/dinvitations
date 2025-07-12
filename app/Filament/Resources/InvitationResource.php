@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvitationResource\Pages;
 use App\Models\Invitation;
+use App\Models\Order;
 use Dotswan\MapPicker;
 use Filament\Forms;
 use Filament\Forms\Components\Actions;
@@ -29,7 +30,8 @@ class InvitationResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()->isClient();
+        $order = Order::where('status', 'active')->where('user_id', auth()->user()->id)->exists();
+        return auth()->user()->isClient() && $order;
     }
 
     public static function form(Form $form): Form
@@ -81,12 +83,14 @@ class InvitationResource extends Resource
                                         return parts.join('-');
                                     }
                                 JS))
-                                ->dehydrateStateUsing(fn($state) => $state
+                                ->dehydrateStateUsing(
+                                    fn($state) => $state
                                     ? '+62' . ltrim(preg_replace('/\D+/', '', $state), '0')
                                     : null
                                 )
                                 ->afterStateHydrated(function ($state, Set $set) {
-                                    if (!$state) return;
+                                    if (!$state)
+                                        return;
 
                                     $digits = preg_replace('/\D+/', '', $state);
                                     $local = preg_replace('/^(62|0)/', '', $digits);
@@ -101,7 +105,7 @@ class InvitationResource extends Resource
 
                                     $set('phone_number', $formatted);
                                 })
-                                ->rule(fn () => function ($attributes, $value, $fail) {
+                                ->rule(fn() => function ($attributes, $value, $fail) {
                                     $digits = ltrim(preg_replace('/\D+/', '', $value), '0');
                                     $length = strlen($digits);
 
@@ -122,29 +126,29 @@ class InvitationResource extends Resource
                                 ->label('Souvenir Stock')
                                 ->numeric()
                                 ->reactive()
-                                ->minValue(fn ($record) => $record?->availableSouvenirStock() ?? 0)
+                                ->minValue(fn($record) => $record?->availableSouvenirStock() ?? 0)
                                 ->required()
                                 ->afterStateHydrated(function ($component) {
                                     $record = $component->getRecord();
 
-                                    if (! $record) {
+                                    if (!$record) {
                                         $component->state(0);
                                         return;
                                     }
 
                                     $component->state($record->isSouvenirLocked() ? $record->availableSouvenirStock() : $record->souvenir_stock);
                                 })
-                                ->disabled(fn ($get, $record) => $record?->isSouvenirLocked() && !$get('unlock_souvenir_stock'))
-                                ->dehydrated(fn ($record, $get) => $record?->isSouvenirLocked() ? $get('unlock_souvenir_stock') : true)
-                                ->hint(fn ($record) => $record?->availableSouvenirStock() ? $record->availableSouvenirStock() . ' / ' . $record->souvenir_stock . ' available' : null)
+                                ->disabled(fn($get, $record) => $record?->isSouvenirLocked() && !$get('unlock_souvenir_stock'))
+                                ->dehydrated(fn($record, $get) => $record?->isSouvenirLocked() ? $get('unlock_souvenir_stock') : true)
+                                ->hint(fn($record) => $record?->availableSouvenirStock() ? $record->availableSouvenirStock() . ' / ' . $record->souvenir_stock . ' available' : null)
                                 ->suffixAction(
                                     Action::make('toggleUnlock')
-                                        ->icon(fn ($get) => $get('unlock_souvenir_stock') ? 'heroicon-m-lock-open' : 'heroicon-m-lock-closed')
+                                        ->icon(fn($get) => $get('unlock_souvenir_stock') ? 'heroicon-m-lock-open' : 'heroicon-m-lock-closed')
                                         ->hiddenLabel()
-                                        ->visible(fn ($record) => $record?->isSouvenirLocked())
+                                        ->visible(fn($record) => $record?->isSouvenirLocked())
                                         ->action(function ($set, $get, $record) {
                                             $isUnlocked = $get('unlock_souvenir_stock');
-                                            $set('unlock_souvenir_stock', ! $isUnlocked);
+                                            $set('unlock_souvenir_stock', !$isUnlocked);
 
                                             if ($record && $isUnlocked) {
                                                 $set('souvenir_stock', $record->availableSouvenirStock());
@@ -207,12 +211,12 @@ class InvitationResource extends Resource
                                         $response = Http::withHeaders([
                                             'User-Agent' => 'MyApp/1.0 (me@example.com)',
                                         ])->get('https://nominatim.openstreetmap.org/reverse', [
-                                            'format' => 'json',
-                                            'lat' => $lat,
-                                            'lon' => $lng,
-                                            'zoom' => 18,
-                                            'addressdetails' => 1,
-                                        ]);
+                                                    'format' => 'json',
+                                                    'lat' => $lat,
+                                                    'lon' => $lng,
+                                                    'zoom' => 18,
+                                                    'addressdetails' => 1,
+                                                ]);
 
                                         $data = $response->json();
 
@@ -251,10 +255,10 @@ class InvitationResource extends Resource
                                             $response = Http::withHeaders([
                                                 'User-Agent' => 'MyApp/1.0 (me@example.com)',
                                             ])->get('https://nominatim.openstreetmap.org/search', [
-                                                'q' => $address,
-                                                'format' => 'json',
-                                                'limit' => 1,
-                                            ]);
+                                                        'q' => $address,
+                                                        'format' => 'json',
+                                                        'limit' => 1,
+                                                    ]);
 
                                             $data = $response->json();
 
@@ -300,12 +304,12 @@ class InvitationResource extends Resource
                                             $response = Http::withHeaders([
                                                 'User-Agent' => 'MyApp/1.0 (me@example.com)',
                                             ])->get('https://nominatim.openstreetmap.org/reverse', [
-                                                'format' => 'json',
-                                                'lat' => $lat,
-                                                'lon' => $lng,
-                                                'zoom' => 18,
-                                                'addressdetails' => 1,
-                                            ]);
+                                                        'format' => 'json',
+                                                        'lat' => $lat,
+                                                        'lon' => $lng,
+                                                        'zoom' => 18,
+                                                        'addressdetails' => 1,
+                                                    ]);
 
                                             $data = $response->json();
 
@@ -318,7 +322,18 @@ class InvitationResource extends Resource
                                     }),
                             ])->fullWidth(),
 
-                            Forms\Components\RichEditor::make('message')
+                            Forms\Components\MarkdownEditor::make('message')
+                            ->toolbarButtons([
+                                    'bold',         // *bold*
+                                    'italic',       // _italic_
+                                    'strike',       // ~strikethrough~
+                                    'codeBlock',    // ```monospace```
+                                    'blockquote',   // > quote
+                                    'bulletList',   // * or - list
+                                    'orderedList',  // 1. list,
+                                    'undo',
+                                    'redo'
+                                ])
                                 ->label('Message Content')
                                 ->default(Invitation::MESSAGE)
                                 ->helperText('Keep the placeholders (e.g. [Guest Name]) as is — they will be replaced with real data.')

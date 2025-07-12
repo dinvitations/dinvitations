@@ -14,9 +14,10 @@ use Filament\Support\RawJs;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\{Table, Columns, Actions, Filters};
 use Filament\Tables\Concerns\InteractsWithTable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Livewire\Component;
@@ -143,7 +144,8 @@ class GuestTable extends Component implements HasTable, HasForms
                             ->whereHas('invitation', function ($query) {
                                 $query->whereNotNull('published_at');
                             })->exists()
-                            && $guest->invitationGuests->isEmpty();
+                            && $guest->invitationGuests->isEmpty()
+                            && !empty($guest->phone_number);
                     })
                     ->disabled(fn(Guest $guest) => empty($guest->phone_number))
                     ->action(function (Guest $record, Actions\Action $action) {
@@ -185,26 +187,35 @@ class GuestTable extends Component implements HasTable, HasForms
                             })
                             ->first();
 
-                        $parsedMessage = urlencode(InvitationHelper::getMessageWaMe($order->invitation, $record));
+                        $parsedMessage = rawurlencode(InvitationHelper::getMessageWaMe(
+                            $order->invitation,
+                            $record,
+                            $this->invitationGuest->id
+                        ));
                         $rawPhoneNumber = preg_replace('/\D+/', '', $record->phone_number);
-                        $waMeUrl = "https://wa.me/$rawPhoneNumber?text=$parsedMessage";
+                        $waMeUrl = "https://api.whatsapp.com/send?phone=$rawPhoneNumber&text=$parsedMessage";
+                        info($waMeUrl);
 
                         // Generate QR code for guest attendance
-                        $disk = 'minio';
-                        $path = implode('', [
-                            'qr-codes/',
-                            "{$order->invitation?->slug}_",
-                            "$record->id.png"
-                        ]);
-                        $qrContent = json_encode([
-                            'id' => $record->id,
-                            'type' => 'attendance',
-                        ]);
-                        $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
-                        Storage::disk($disk)->put($path, $qrCodeSvg);
+                        try {
+                            $disk = 'minio';
+                            $path = implode('', [
+                                'qr-codes/',
+                                "{$order->invitation?->slug}_",
+                                "$record->id.png"
+                            ]);
+                            $qrContent = json_encode([
+                                'id' => $record->id,
+                                'type' => 'attendance',
+                            ]);
+                            $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
+                            Storage::disk($disk)->put($path, $qrCodeSvg);
 
-                        if (!Storage::disk('minio')->exists($path)) {
-                            throw new \Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
+                            if (!Storage::disk('minio')->exists($path)) {
+                                throw new \Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
+                            }
+                        } catch (\Throwable $th) {
+                            Log::error("Failed to store QR file at $path");
                         }
 
                         if ($this->invitationGuest)
@@ -220,15 +231,29 @@ class GuestTable extends Component implements HasTable, HasForms
                 Actions\Action::make('copy')
                     ->icon('heroicon-o-paper-airplane')
                     ->label('Copy')
-                    ->visible(fn(Guest $guest) => $guest->invitationGuests->isNotEmpty())
+                    ->visible(fn(Guest $guest) => $guest->invitationGuests->isNotEmpty() || empty($guest->phone_number))
                     ->url('#')
                     ->extraAttributes(function (Guest $record, $livewire) {
-                        $invitation = $record->invitationGuests->first()?->invitation;
+                        $invitationGuest = DB::transaction(function () use ($record) {
+                            $order = auth()->user()->orders()
+                                ->where('status', 'active')
+                                ->whereHas('invitation', function ($query) {
+                                    $query->whereNotNull('published_at');
+                                })
+                                ->firstOrFail();
+
+                            return $record->invitationGuests()->firstOrCreate([
+                                'invitation_id' => $order->invitation?->id,
+                                'type' => $record->type_default,
+                            ]);
+                        });
+
+                        $invitation = $invitationGuest?->invitation;
 
                         if (blank($invitation))
                             return [];
 
-                        $parsedMessage = InvitationHelper::getMessage($invitation, $record);
+                        $parsedMessage = InvitationHelper::getMessage($invitation, $record, $invitationGuest->id);
 
                         $jsSnippet = <<<JS
                             async () => {
