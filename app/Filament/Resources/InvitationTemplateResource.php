@@ -64,8 +64,8 @@ class InvitationTemplateResource extends Resource
 
                 Forms\Components\Section::make()
                     ->schema([
-                        GrapesJs::make('template_builder')
-                            ->label('Template Builder')
+                        GrapesJs::make('template_editor')
+                            ->label('Template Editor')
                             ->dehydrated(false)
                             ->afterStateHydrated(function (GrapesJs $component, ?Invitation $record) {
                                 $templateId = request()->query('template_id');
