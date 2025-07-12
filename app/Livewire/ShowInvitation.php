@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use App\Models\InvitationTemplateView;
+use App\Support\InvitationHelper;
 use Livewire\Component;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -69,17 +70,15 @@ class ShowInvitation extends Component
             $guest = InvitationGuest::find($guestId);
 
             if ($guest) {
-                $qrPayload = [
-                    'id' => $guest->id,
-                    'type' => 'attendance',
-                ];
-                $qrCode = base64_encode(
-                    QrCode::format('png')->size(160)->generate(json_encode($qrPayload))
-                );
                 $this->data['guest'] = [
                     'id' => $guest->id,
-                    'qrcode' => $qrCode,
-                    'rsvp' => !$guest->rsvp
+                    'guest_name' => $guest->guest?->name,
+                    'qrcode' => Storage::disk('minio')->exists($guest->qr_code_path)
+                        ? Storage::disk('minio')->temporaryUrl(
+                            $guest->qr_code_path,
+                            now()->addMinutes(10)
+                        ) : null,
+                    'rsvp' => $guest->rsvp
                 ];
             }
         }
@@ -87,11 +86,38 @@ class ShowInvitation extends Component
 
     public function render()
     {
+        $locationUrl = $this->record->location_latlng
+            ? 'https://maps.google.com/?q=' . $this->record->location_latlng
+            : '#';
+
+        $formattedEventDate = '';
+        if (!empty($this->record->date_start)) {
+            $start = \Carbon\Carbon::parse($this->record->date_start);
+            $formattedEventDate = $start->translatedFormat('l, d F Y');
+
+            if (!empty($this->record->date_end)) {
+                $end = \Carbon\Carbon::parse($this->record->date_end);
+                $formattedEventDate .= '<br>' . $start->format('H.i') . ' s/d ' . $end->format('H.i');
+            }
+        }
+
+        $guest = $this->data['guest'] ?? [];
+
+        $replacements = [
+            'Guest Name' => $guest['guest_name'] ?? 'Guest',
+            'Event Date' => $formattedEventDate,
+            'Loc Maps' => $locationUrl,
+            'RSVP' => $guest['rsvp'] ?? null,
+            'QR Code' => $guest['qrcode'] ?? null,
+        ];
+
+        $html = InvitationHelper::getHtml($this->data['html'], $replacements);
+
         return view('livewire.show-invitation', [
-            'html' => $this->data['html'],
+            'html' => $html,
             'css' => $this->data['css'],
             'js' => $this->data['js'],
-            'guest' => $this->data['guest'] ?? null
+            'guest' => $this->data['guest'] ?? []
         ]);
     }
 
