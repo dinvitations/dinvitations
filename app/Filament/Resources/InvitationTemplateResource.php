@@ -126,16 +126,22 @@ class InvitationTemplateResource extends Resource
                             })
                             ->plugins([
                                 'gjs-blocks-basic',
+                                'grapesjs-component-code-editor',
                                 'grapesjs-component-countdown',
+                                'grapesjs-custom-code',
                                 'grapesjs-dinvitations',
                                 'grapesjs-navbar',
                                 'grapesjs-parser-postcss',
+                                'grapesjs-plugin-export',
                                 'grapesjs-plugin-forms',
+                                'grapesjs-preset-webpage',
                                 'grapesjs-rte-extensions',
+                                'grapesjs-style-bg',
                                 'grapesjs-tabs',
                                 'grapesjs-tooltip',
-                                'grapesjs-typed',
                                 'grapesjs-touch',
+                                'grapesjs-tui-image-editor',
+                                'grapesjs-typed',
                             ])
                             ->settings([
                                 'disableStyles' => true,
@@ -164,7 +170,7 @@ class InvitationTemplateResource extends Resource
                                         ->toArray(),
                                 ],
                             ])
-                            ->id('template_builder')
+                            ->id('template_editor')
                     ])
             ]);
     }
