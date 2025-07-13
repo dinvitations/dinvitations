@@ -13,6 +13,9 @@
             [x-cloak] {
                 display: none !important;
             }
+            html {
+                scroll-behavior: smooth;
+            }
         </style>
 
         <!-- <script src="https://cdn.tailwindcss.com"></script> -->
