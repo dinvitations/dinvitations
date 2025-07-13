@@ -9,10 +9,10 @@ use App\Models\InvitationGuest;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
 class QRCodeController extends Controller
@@ -81,6 +81,29 @@ class QRCodeController extends Controller
                 $guest->attended_at = $now;
                 $guest->guest_count = $guestCount;
                 $guest->save();
+
+                // Generate QR code for QR souvenir
+                try {
+                    $disk = 'minio';
+                    $path = implode('', [
+                        'qr-codes/',
+                        'souvenir_',
+                        "{$guest->invitation?->slug}_",
+                        "{$guest->guest?->id}.png"
+                    ]);
+                    $qrContent = json_encode([
+                        'id' => $guest->id,
+                        'type' => 'souvenir',
+                    ]);
+                    $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
+                    Storage::disk($disk)->put($path, $qrCodeSvg);
+
+                    if (!Storage::disk('minio')->exists($path)) {
+                        throw new Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
+                    }
+                } catch (\Throwable $th) {
+                    Log::error("Failed to store QR file at $path");
+                }
 
                 $pdfPayload = base64_encode(json_encode([
                     'id' => $guest->id,

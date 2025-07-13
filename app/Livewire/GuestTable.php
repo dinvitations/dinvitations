@@ -205,7 +205,7 @@ class GuestTable extends Component implements HasTable, HasForms
                                 "$record->id.png"
                             ]);
                             $qrContent = json_encode([
-                                'id' => $record->id,
+                                'id' => $this->invitationGuest->id,
                                 'type' => 'attendance',
                             ]);
                             $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);

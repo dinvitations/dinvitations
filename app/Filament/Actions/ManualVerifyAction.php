@@ -11,7 +11,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\RawJs;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ManualVerifyAction extends Action
 {
@@ -68,24 +72,48 @@ class ManualVerifyAction extends Action
                 ])
             ])
             ->action(function (array $data) {
-                $guest = InvitationGuest::query()
+                $invitationGuest = InvitationGuest::query()
                     ->where('guest_id', $data['guest_id'])
                     ->latest()
+                    ->with(['guest', 'invitation'])
                     ->first();
 
-                if ($guest) {
-                    DB::transaction(function () use ($guest, $data) {
-                        $guest->update([
+                if ($invitationGuest) {
+                    DB::transaction(function () use ($invitationGuest, $data) {
+                        $invitationGuest->update([
                             'attended_at' => now(),
                             'guest_count' => (int) str_replace('.', '', $data['guest_count']),
                         ]);
 
                         Notification::make()
                             ->title('Guest Verified Successfully')
-                            ->body("Guest {$guest->name} has been marked as attended.")
+                            ->body("Guest {$invitationGuest->guest?->name} has been marked as attended.")
                             ->success()
                             ->send();
                     });
+
+                    // Generate QR code for QR souvenir
+                    try {
+                        $disk = 'minio';
+                        $path = implode('', [
+                            'qr-codes/',
+                            'souvenir_',
+                            "{$invitationGuest->invitation?->slug}_",
+                            "{$invitationGuest->guest?->id}.png"
+                        ]);
+                        $qrContent = json_encode([
+                            'id' => $invitationGuest->id,
+                            'type' => 'souvenir',
+                        ]);
+                        $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
+                        Storage::disk($disk)->put($path, $qrCodeSvg);
+
+                        if (!Storage::disk('minio')->exists($path)) {
+                            throw new \Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
+                        }
+                    } catch (\Throwable $th) {
+                        Log::error("Failed to store QR file at $path");
+                    }
                 } else {
                     Notification::make()
                         ->title('Error: Guest not found.')
