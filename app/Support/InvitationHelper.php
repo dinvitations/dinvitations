@@ -116,7 +116,45 @@ class InvitationHelper
         $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
         $xpath = new \DOMXPath($dom);
 
+        if (isset($replacements['RSVP']) && isset($replacements['RSVP']['id'])) {
+            $guestId = $replacements['RSVP']['id'];
+            $rsvpValue = $replacements['RSVP']['rsvp'] ?? null;
+
+            $containers = $xpath->query("//*[@data-rsvp-block-id]");
+
+            foreach ($containers as $container) {
+                $blockId = $container->getAttribute('data-rsvp-block-id');
+                $yesButton = $dom->getElementById("rsvp-yes-$blockId");
+                $noButton = $dom->getElementById("rsvp-no-$blockId");
+
+                if ($rsvpValue === null) {
+                    if ($yesButton) {
+                        $yesButton->setAttribute('onclick', "submitRSVP('$guestId', true, '$blockId')");
+                    }
+                    if ($noButton) {
+                        $noButton->setAttribute('onclick', "submitRSVP('$guestId', false, '$blockId')");
+                    }
+                } else {
+                    while ($container->hasChildNodes()) {
+                        $container->removeChild($container->firstChild);
+                    }
+
+                    $thankYouHtml = '<p style="font-size: 21px; text-align: center;">Thank you for confirming your attendance.</p>';
+                    $tmpDoc = new \DOMDocument();
+                    $tmpDoc->loadHTML(mb_convert_encoding('<body>' . $thankYouHtml . '</body>', 'HTML-ENTITIES', 'UTF-8'));
+
+                    $body = $tmpDoc->getElementsByTagName('body')->item(0);
+                    foreach ($body->childNodes as $child) {
+                        $imported = $dom->importNode($child, true);
+                        $container->appendChild($imported);
+                    }
+                }
+            }
+        }
+
         foreach ($replacements as $key => $value) {
+            if ($key === 'RSVP') continue;
+
             $slugKey = \Illuminate\Support\Str::slug($key, '_');
 
             $selectors = [
@@ -126,53 +164,62 @@ class InvitationHelper
                 "//*[@id='{$slugKey}']",
             ];
 
+            $classNodes = $xpath->query("//*[contains(concat(' ', normalize-space(@class), ' '), ' {$slugKey} ')]");
+            if ($classNodes->length > 0) {
+                foreach ($classNodes as $node) {
+                    self::replaceNodeContent($dom, $node, $value);
+                }
+            }
+
             foreach ($selectors as $selector) {
                 $nodes = $xpath->query($selector);
-
                 foreach ($nodes as $node) {
-                    if ($node->nodeName === 'img' && $node->hasAttribute('alt')) {
-                        if (!empty($value)) {
-                            $node->setAttribute('src', $value);
-                        }
-                        continue;
-                    }
-
-                    if ($node->nodeName === 'a' && $node->hasAttribute('href')) {
-                        if (!empty($value)) {
-                            $node->setAttribute('href', $value);
-                        }
-                        continue;
-                    }
-
-                    if (in_array($node->nodeName, ['input', 'textarea', 'select']) && $node->hasAttribute('placeholder')) {
-                        if (!empty($value)) {
-                            $node->setAttribute('placeholder', $value);
-                        }
-                        continue;
-                    }
-
-                    if (!empty($value)) {
-                        while ($node->hasChildNodes()) {
-                            $node->removeChild($node->firstChild);
-                        }
-
-                        $tmpDoc = new \DOMDocument();
-                        libxml_use_internal_errors(true);
-                        $tmpDoc->loadHTML(mb_convert_encoding('<body>' . $value . '</body>', 'HTML-ENTITIES', 'UTF-8'));
-                        libxml_clear_errors();
-
-                        $body = $tmpDoc->getElementsByTagName('body')->item(0);
-                        if ($body) {
-                            foreach ($body->childNodes as $child) {
-                                $imported = $dom->importNode($child, true);
-                                $node->appendChild($imported);
-                            }
-                        }
-                    }
+                    self::replaceNodeContent($dom, $node, $value);
                 }
             }
         }
 
         return $dom->saveHTML();
+    }
+
+    private static function replaceNodeContent(\DOMDocument $dom, \DOMElement $node, $value)
+    {
+        if ($node->nodeName === 'img' && $node->hasAttribute('alt')) {
+            if (!empty($value)) {
+                $node->setAttribute('src', $value);
+            }
+            return;
+        }
+
+        if ($node->nodeName === 'a' && $node->hasAttribute('href')) {
+            if (!empty($value)) {
+                $node->setAttribute('href', $value);
+            }
+            return;
+        }
+
+        if (in_array($node->nodeName, ['input', 'textarea', 'select']) && $node->hasAttribute('placeholder')) {
+            if (!empty($value)) {
+                $node->setAttribute('placeholder', $value);
+            }
+            return;
+        }
+
+        if (!empty($value)) {
+            while ($node->hasChildNodes()) {
+                $node->removeChild($node->firstChild);
+            }
+
+            $tmpDoc = new \DOMDocument();
+            $tmpDoc->loadHTML(mb_convert_encoding('<body>' . $value . '</body>', 'HTML-ENTITIES', 'UTF-8'));
+
+            $body = $tmpDoc->getElementsByTagName('body')->item(0);
+            if ($body) {
+                foreach ($body->childNodes as $child) {
+                    $imported = $dom->importNode($child, true);
+                    $node->appendChild($imported);
+                }
+            }
+        }
     }
 }
