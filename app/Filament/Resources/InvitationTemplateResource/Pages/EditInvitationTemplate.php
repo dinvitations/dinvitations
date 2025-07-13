@@ -109,7 +109,7 @@ class EditInvitationTemplate extends EditRecord
             });
 
         foreach ($viewTypes as $type => $meta) {
-            $content = data_get($data['template_builder'], $type, '');
+            $content = data_get($data['template_editor'], $type, '');
             
             if (is_array($content)) {
                 $content = json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

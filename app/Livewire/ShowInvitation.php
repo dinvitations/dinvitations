@@ -106,8 +106,12 @@ class ShowInvitation extends Component
         $replacements = [
             'Guest Name' => $guest['guest_name'] ?? 'Guest',
             'Event Date' => $formattedEventDate,
-            'Loc Maps' => $locationUrl,
-            'RSVP' => $guest['rsvp'] ?? null,
+            'Address' => $this->record->location ?? 'Event address not available',
+            'Location Link' => $locationUrl,
+            'RSVP' => [
+                'id' => $guest['id'] ?? null,
+                'rsvp' => $guest['rsvp'] ?? null,
+            ],
             'QR Code' => $guest['qrcode'] ?? null,
         ];
 
@@ -121,7 +125,7 @@ class ShowInvitation extends Component
         ]);
     }
 
-    public function rsvp(string $guestId)
+    public function rsvp(string $guestId, bool $rsvp)
     {
         if (!Str::isUuid($guestId)) {
             return;
@@ -130,11 +134,11 @@ class ShowInvitation extends Component
         $guest = InvitationGuest::find($guestId);
 
         if ($guest) {
-            $guest->rsvp = true;
+            $guest->rsvp = $rsvp;
             $guest->save();
 
             if (isset($this->data['guest']) && $this->data['guest']['id'] == $guestId) {
-                $this->data['guest']['rsvp'] = false;
+                $this->data['guest']['rsvp'] = $rsvp;
             }
         }
     }
