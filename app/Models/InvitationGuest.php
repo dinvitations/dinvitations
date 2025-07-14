@@ -23,6 +23,7 @@ class InvitationGuest extends Model
         'type',
         'rsvp',
         'qr_code_path',
+        'souvenir_qr_path',
         'attended_at',
         'souvenir_at',
         'selfie_at',

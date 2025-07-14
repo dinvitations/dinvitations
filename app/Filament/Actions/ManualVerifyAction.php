@@ -4,6 +4,7 @@ namespace App\Filament\Actions;
 
 use App\Models\Guest;
 use App\Models\InvitationGuest;
+use App\Support\InvitationHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
@@ -11,11 +12,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\Alignment;
 use Filament\Support\RawJs;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ManualVerifyAction extends Action
 {
@@ -93,27 +90,7 @@ class ManualVerifyAction extends Action
                     });
 
                     // Generate QR code for QR souvenir
-                    try {
-                        $disk = 'minio';
-                        $path = implode('', [
-                            'qr-codes/',
-                            'souvenir_',
-                            "{$invitationGuest->invitation?->slug}_",
-                            "{$invitationGuest->guest?->id}.png"
-                        ]);
-                        $qrContent = json_encode([
-                            'id' => $invitationGuest->id,
-                            'type' => 'souvenir',
-                        ]);
-                        $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
-                        Storage::disk($disk)->put($path, $qrCodeSvg);
-
-                        if (!Storage::disk('minio')->exists($path)) {
-                            throw new \Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
-                        }
-                    } catch (\Throwable $th) {
-                        Log::error("Failed to store QR file at $path");
-                    }
+                    InvitationHelper::generateSouvenirQr($invitationGuest);
                 } else {
                     Notification::make()
                         ->title('Error: Guest not found.')

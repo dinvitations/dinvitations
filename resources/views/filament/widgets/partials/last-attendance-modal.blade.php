@@ -32,11 +32,9 @@
     </div>
 
     <!-- Right column: QR Code -->
-    <div class="flex-1 flex justify-center items-center">
-        @if (isset($souvenirQrPath))
+    @if (isset($souvenirQrPath))
+        <div class="flex-1 flex justify-center items-center">
             <img src="{{ $souvenirQrPath }}" alt="Souvenir QR Code" class="max-w-40 max-h-40 object-contain border rounded" />
-        @else
-            <span>No QR Code</span>
-        @endif
-    </div>
+        </div>
+    @endif
 </div>

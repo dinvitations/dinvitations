@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invitation;
+use App\Support\InvitationHelper;
 use Illuminate\Http\Request;
 use App\Models\InvitationGuest;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Exception;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -83,31 +83,12 @@ class QRCodeController extends Controller
                 $guest->save();
 
                 // Generate QR code for QR souvenir
-                try {
-                    $disk = 'minio';
-                    $path = implode('', [
-                        'qr-codes/',
-                        'souvenir_',
-                        "{$guest->invitation?->slug}_",
-                        "{$guest->guest?->id}.png"
-                    ]);
-                    $qrContent = json_encode([
-                        'id' => $guest->id,
-                        'type' => 'souvenir',
-                    ]);
-                    $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
-                    Storage::disk($disk)->put($path, $qrCodeSvg);
-
-                    if (!Storage::disk('minio')->exists($path)) {
-                        throw new Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
-                    }
-                } catch (\Throwable $th) {
-                    Log::error("Failed to store QR file at $path");
-                }
+                $souvenirQrPath = InvitationHelper::generateSouvenirQr($guest);
 
                 $pdfPayload = base64_encode(json_encode([
                     'id' => $guest->id,
                     'type' => 'souvenir',
+                    'path' => $souvenirQrPath,
                 ]));
 
                 $signedUrl = URL::signedRoute('api.qr_pdf', [
@@ -182,7 +163,7 @@ class QRCodeController extends Controller
             $decodedQr = base64_decode($encodedQr, true);
             $qrPayload = json_decode($decodedQr, true);
 
-            if (!is_array($qrPayload) || !isset($qrPayload['id'], $qrPayload['type'])) {
+            if (!is_array($qrPayload) || !isset($qrPayload['id'], $qrPayload['type'], $qrPayload['path'])) {
                 abort(Response::HTTP_BAD_REQUEST, 'Invalid QR code data.');
             }
 
@@ -206,13 +187,9 @@ class QRCodeController extends Controller
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            $qrCode = base64_encode(
-                QrCode::format('png')->size(160)->generate(json_encode($qrPayload))
-            );
-
             $pdf = Pdf::loadView('pdf.qrcode', [
                 'guest' => $guest,
-                'qrCode' => $qrCode,
+                'qrCode' => base64_encode(Storage::disk('minio')->get($qrPayload['path'])),
                 'type' => $qrPayload['type'],
             ]);
             $pdf->setPaper([0, 0, 164.4, 113.4], 'portrait');
