@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\QRCodeController;
-use App\Http\Controllers\GrapesJSUploadController;
+use App\Http\Controllers\Api\GrapesJSUploadController;
 use App\Http\Controllers\Api\RSVPController;
 use App\Http\Middleware\VerifyQRApiKey;
 use Illuminate\Support\Facades\Route;
