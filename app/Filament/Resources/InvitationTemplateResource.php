@@ -125,16 +125,15 @@ class InvitationTemplateResource extends Resource
                                 ]);
                             })
                             ->plugins([
+                                'grapesjs-dinvitations',
                                 'gjs-blocks-basic',
                                 'grapesjs-component-code-editor',
                                 'grapesjs-component-countdown',
                                 'grapesjs-custom-code',
-                                'grapesjs-dinvitations',
                                 'grapesjs-navbar',
                                 'grapesjs-parser-postcss',
                                 'grapesjs-plugin-export',
                                 'grapesjs-plugin-forms',
-                                'grapesjs-preset-webpage',
                                 'grapesjs-rte-extensions',
                                 'grapesjs-style-bg',
                                 'grapesjs-tabs',
@@ -169,6 +168,7 @@ class InvitationTemplateResource extends Resource
                                         ->values()
                                         ->toArray(),
                                 ],
+                                ...config('filament-grapesjs.settings')
                             ])
                             ->id('template_editor')
                     ])
@@ -249,9 +249,9 @@ class InvitationTemplateResource extends Resource
                     ->icon('heroicon-s-pencil-square')
                     ->label(function ($record) {
                         $invitation = Invitation::whereHas('order', function ($query) {
-                                $query->where('status', 'active')
-                                    ->where('user_id', auth()->user()->id);
-                            })
+                            $query->where('status', 'active')
+                                ->where('user_id', auth()->user()->id);
+                        })
                             ->first();
 
                         if ($invitation && $invitation?->template_id === $record->id) {

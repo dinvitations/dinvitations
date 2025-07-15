@@ -15,14 +15,10 @@ Route::get('/qr-pdf', [QRCodeController::class, 'view'])
     ->middleware('signed')
     ->name('api.qr_pdf');
 
-Route::middleware('api')->group(function () {
-    Route::post('/grapesjs/upload', [GrapesJSUploadController::class, 'upload'])->name('grapesjs.upload');
-    Route::post('/rsvp', [RSVPController::class, 'store'])->name('rsvp');
-    Route::get('/version', function () {
-        $version = Storage::disk('local')->exists('version.txt')
-            ? trim(Storage::disk('local')->get('version.txt'))
-            : 'unknown';
+Route::get('/version', function () {
+    $version = Storage::disk('local')->exists('version.txt')
+        ? trim(Storage::disk('local')->get('version.txt'))
+        : 'unknown';
 
-        return response()->json(['version' => $version]);
-    });
+    return response()->json(['version' => $version]);
 });
