@@ -130,16 +130,15 @@ class TemplatesResource extends Resource
                                 ]);
                             })
                             ->plugins([
+                                'grapesjs-dinvitations',
                                 'gjs-blocks-basic',
                                 'grapesjs-component-code-editor',
                                 'grapesjs-component-countdown',
                                 'grapesjs-custom-code',
-                                'grapesjs-dinvitations',
                                 'grapesjs-navbar',
                                 'grapesjs-parser-postcss',
                                 'grapesjs-plugin-export',
                                 'grapesjs-plugin-forms',
-                                'grapesjs-preset-webpage',
                                 'grapesjs-rte-extensions',
                                 'grapesjs-style-bg',
                                 'grapesjs-tabs',
@@ -172,6 +171,7 @@ class TemplatesResource extends Resource
                                         ->values()
                                         ->toArray(),
                                 ],
+                                ...config('filament-grapesjs.settings')
                             ])
                             ->id('template_builder')
                     ]),

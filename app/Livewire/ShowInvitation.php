@@ -124,22 +124,4 @@ class ShowInvitation extends Component
             'guest' => $this->data['guest'] ?? []
         ]);
     }
-
-    public function rsvp(string $guestId, bool $rsvp)
-    {
-        if (!Str::isUuid($guestId)) {
-            return;
-        }
-        
-        $guest = InvitationGuest::find($guestId);
-
-        if ($guest) {
-            $guest->rsvp = $rsvp;
-            $guest->save();
-
-            if (isset($this->data['guest']) && $this->data['guest']['id'] == $guestId) {
-                $this->data['guest']['rsvp'] = $rsvp;
-            }
-        }
-    }
 }

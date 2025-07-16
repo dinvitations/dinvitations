@@ -110,6 +110,10 @@ class InvitationHelper
 
     public static function getHtml($html, $replacements = []): string
     {
+        if (trim($html) === '') {
+            return '';
+        }
+
         libxml_use_internal_errors(true);
 
         $dom = new \DOMDocument();
@@ -123,34 +127,16 @@ class InvitationHelper
             $containers = $xpath->query("//*[@data-rsvp-block-id]");
 
             foreach ($containers as $container) {
-                $blockId = $container->getAttribute('data-rsvp-block-id');
-                $yesButton = $dom->getElementById("rsvp-yes-$blockId");
-                $noButton = $dom->getElementById("rsvp-no-$blockId");
+                $container->setAttribute('data-guest-id', $guestId);
 
-                if ($rsvpValue === null) {
-                    if ($yesButton) {
-                        $yesButton->setAttribute('onclick', "submitRSVP('$guestId', true, '$blockId')");
-                    }
-                    if ($noButton) {
-                        $noButton->setAttribute('onclick', "submitRSVP('$guestId', false, '$blockId')");
-                    }
+                if ($rsvpValue === true || $rsvpValue === false) {
+                    $container->setAttribute('data-rsvp', $rsvpValue ? 'true' : 'false');
                 } else {
-                    while ($container->hasChildNodes()) {
-                        $container->removeChild($container->firstChild);
-                    }
-
-                    $thankYouHtml = '<p style="font-size: 21px; text-align: center;">Thank you for confirming your attendance.</p>';
-                    $tmpDoc = new \DOMDocument();
-                    $tmpDoc->loadHTML(mb_convert_encoding('<body>' . $thankYouHtml . '</body>', 'HTML-ENTITIES', 'UTF-8'));
-
-                    $body = $tmpDoc->getElementsByTagName('body')->item(0);
-                    foreach ($body->childNodes as $child) {
-                        $imported = $dom->importNode($child, true);
-                        $container->appendChild($imported);
-                    }
+                    $container->setAttribute('data-rsvp', 'null');
                 }
             }
         }
+
 
         foreach ($replacements as $key => $value) {
             if ($key === 'RSVP') continue;
