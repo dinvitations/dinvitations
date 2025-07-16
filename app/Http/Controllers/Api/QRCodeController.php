@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Invitation;
+use App\Support\InvitationHelper;
 use Illuminate\Http\Request;
 use App\Models\InvitationGuest;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Exception;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 
 class QRCodeController extends Controller
@@ -82,9 +82,13 @@ class QRCodeController extends Controller
                 $guest->guest_count = $guestCount;
                 $guest->save();
 
+                // Generate QR code for QR souvenir
+                $souvenirQrPath = InvitationHelper::generateSouvenirQr($guest);
+
                 $pdfPayload = base64_encode(json_encode([
                     'id' => $guest->id,
                     'type' => 'souvenir',
+                    'path' => $souvenirQrPath,
                 ]));
 
                 $signedUrl = URL::signedRoute('api.qr_pdf', [
@@ -159,7 +163,7 @@ class QRCodeController extends Controller
             $decodedQr = base64_decode($encodedQr, true);
             $qrPayload = json_decode($decodedQr, true);
 
-            if (!is_array($qrPayload) || !isset($qrPayload['id'], $qrPayload['type'])) {
+            if (!is_array($qrPayload) || !isset($qrPayload['id'], $qrPayload['type'], $qrPayload['path'])) {
                 abort(Response::HTTP_BAD_REQUEST, 'Invalid QR code data.');
             }
 
@@ -183,13 +187,9 @@ class QRCodeController extends Controller
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            $qrCode = base64_encode(
-                QrCode::format('png')->size(160)->generate(json_encode($qrPayload))
-            );
-
             $pdf = Pdf::loadView('pdf.qrcode', [
                 'guest' => $guest,
-                'qrCode' => $qrCode,
+                'qrCode' => base64_encode(Storage::disk('minio')->get($qrPayload['path'])),
                 'type' => $qrPayload['type'],
             ]);
             $pdf->setPaper([0, 0, 164.4, 113.4], 'portrait');

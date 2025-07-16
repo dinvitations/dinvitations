@@ -4,6 +4,7 @@ namespace App\Filament\Actions;
 
 use App\Models\Guest;
 use App\Models\InvitationGuest;
+use App\Support\InvitationHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
@@ -68,24 +69,28 @@ class ManualVerifyAction extends Action
                 ])
             ])
             ->action(function (array $data) {
-                $guest = InvitationGuest::query()
+                $invitationGuest = InvitationGuest::query()
                     ->where('guest_id', $data['guest_id'])
                     ->latest()
+                    ->with(['guest', 'invitation'])
                     ->first();
 
-                if ($guest) {
-                    DB::transaction(function () use ($guest, $data) {
-                        $guest->update([
+                if ($invitationGuest) {
+                    DB::transaction(function () use ($invitationGuest, $data) {
+                        $invitationGuest->update([
                             'attended_at' => now(),
                             'guest_count' => (int) str_replace('.', '', $data['guest_count']),
                         ]);
 
                         Notification::make()
                             ->title('Guest Verified Successfully')
-                            ->body("Guest {$guest->name} has been marked as attended.")
+                            ->body("Guest {$invitationGuest->guest?->name} has been marked as attended.")
                             ->success()
                             ->send();
                     });
+
+                    // Generate QR code for QR souvenir
+                    InvitationHelper::generateSouvenirQr($invitationGuest);
                 } else {
                     Notification::make()
                         ->title('Error: Guest not found.')
