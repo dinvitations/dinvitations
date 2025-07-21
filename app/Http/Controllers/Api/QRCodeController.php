@@ -153,6 +153,8 @@ class QRCodeController extends Controller
      */
     public function view(Request $request)
     {
+        $disk = 'minio';
+
         try {
             if (!$request->hasValidSignature() || !$request->has('user') || !$request->has('qr')) {
                 abort(Response::HTTP_FORBIDDEN, 'The link has expired or is invalid.');
@@ -189,7 +191,7 @@ class QRCodeController extends Controller
 
             $pdf = Pdf::loadView('pdf.qrcode', [
                 'guest' => $guest,
-                'qrCode' => base64_encode(Storage::disk('minio')->get($qrPayload['path'])),
+                'qrCode' => base64_encode(Storage::disk($disk)->get($qrPayload['path'])),
                 'type' => $qrPayload['type'],
             ]);
             $pdf->setPaper([0, 0, 164.4, 113.4], 'portrait');

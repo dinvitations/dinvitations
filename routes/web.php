@@ -2,7 +2,6 @@
 
 use App\Livewire\ShowInvitation;
 use App\Livewire\ShowTemplate;
-use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use Illuminate\Support\Facades\Route;
 

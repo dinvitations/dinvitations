@@ -263,6 +263,7 @@ class InvitationHelper
             return $path;
         } catch (\Throwable $th) {
             Log::error("Failed to store QR file at $path");
+            throw $th;
         }
     }
 }
