@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Exports\GuestBookExport;
 use App\Filament\Resources\HistoryOrdersResource\Pages;
 use App\Models\InvitationGuest;
 use App\Models\Order;
@@ -11,7 +10,6 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -76,7 +74,7 @@ class HistoryOrdersResource extends Resource
                     ->icon('heroicon-o-arrow-down-tray')
                     ->default('Download')
                     ->action(
-                        ViewAction::make('download')
+                        Action::make('download')
                             ->action(function ($record) {
                                 $invitation = $record->invitation;
 
