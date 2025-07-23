@@ -81,8 +81,8 @@
 
                 this.successMessage = data.message || 'Success!';
 
-                if (data.pdf_url) {
-                    window.open(data.pdf_url, '_blank');
+                if (data.qr_view_url) {
+                    window.open(data.qr_view_url, '_blank');
                 }
             } catch (err) {
                 console.error(err);
