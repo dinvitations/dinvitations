@@ -11,9 +11,9 @@ Route::middleware(VerifyQRApiKey::class)->group(function () {
     Route::post('/scan-qrcode', [QRCodeController::class, 'store'])->name('api.scan_qrcode');
 });
 
-Route::get('/qr-pdf', [QRCodeController::class, 'view'])
+Route::get('/qr/view', [QRCodeController::class, 'view'])
     ->middleware('signed')
-    ->name('api.qr_pdf');
+    ->name('api.qr_view');
 
 Route::get('/version', function () {
     $version = Storage::disk('local')->exists('version.txt')

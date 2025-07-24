@@ -14,6 +14,7 @@ use Filament\Widgets\TableWidget as BaseWidget;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class LastAttendance extends BaseWidget
 {
@@ -51,7 +52,7 @@ class LastAttendance extends BaseWidget
                     })
                     ->whereNotNull('attended_at')
                     ->orderByRaw('left_at IS NOT NULL')
-                    ->orderByDesc('attended_at') 
+                    ->orderByDesc('attended_at')
             )
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No attendance yet')
@@ -105,6 +106,9 @@ class LastAttendance extends BaseWidget
                                 'souvenirAt' => $record->souvenir_at?->format('M d, Y \a\t h:i A'),
                                 'leftAt' => $record->left_at?->format('M d, Y \a\t h:i A'),
                                 'guestCount' => $record->guest_count,
+                                'souvenirQrPath' => empty($record->souvenir_qr_path)
+                                    ? null
+                                    : Storage::disk('minio')->temporaryUrl($record->souvenir_qr_path,now()->addMinutes(5)),
                             ]);
                         }),
                     Action::make('claimSouvenir')

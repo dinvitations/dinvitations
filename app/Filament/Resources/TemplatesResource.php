@@ -47,7 +47,6 @@ class TemplatesResource extends Resource
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->reactive()
                             ->afterStateUpdated(function (callable $set, $state) {
                                 $set('slug', Str::slug($state));
                             })
@@ -143,7 +142,7 @@ class TemplatesResource extends Resource
                                 'grapesjs-style-bg',
                                 'grapesjs-tabs',
                                 'grapesjs-tooltip',
-                                'grapesjs-touch',
+                                // 'grapesjs-touch',
                                 'grapesjs-tui-image-editor',
                                 'grapesjs-typed',
                             ])

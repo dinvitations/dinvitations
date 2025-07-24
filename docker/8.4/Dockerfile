@@ -66,12 +66,16 @@ RUN apt-get update && \
     && apt-get install -y --no-install-recommends \
         postgresql-client-$POSTGRES_VERSION \
         nodejs yarn \
+        ghostscript imagemagick \
     && npm install -g npm pnpm bun \
     && curl -sS https://getcomposer.org/installer | php \
     && mv composer.phar /usr/local/bin/composer \
     && chmod +x /usr/local/bin/composer \
     && apt-get -y autoremove && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Allow Imagick to read/write PDFs
+RUN sed -i '/<policymap>/a \  <policy domain="coder" rights="read | write" pattern="PDF" />' /etc/ImageMagick-6/policy.xml
 
 # Allow PHP to bind low ports
 RUN setcap "cap_net_bind_service=+ep" /usr/sbin/php-fpm${PHP_VERSION}
