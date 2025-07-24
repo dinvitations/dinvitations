@@ -23,13 +23,23 @@
                     Print PDF
                 </x-filament::button>
 
-                <x-filament::button
-                    type="button"
-                    color="gray"
-                    x-on:click="window.location.href = '{{ route('selfie.capture') }}'"
-                >
-                    Continue to Selfie &gt;
-                </x-filament::button>
+                @if($hasSelfieFeature)
+                    <x-filament::button
+                        type="button"
+                        color="gray"
+                        x-on:click="window.location.href = '{{ route('selfie.capture') }}'"
+                    >
+                        Continue to Selfie
+                    </x-filament::button>
+                @else
+                    <x-filament::button
+                        type="button"
+                        color="gray"
+                        x-on:click="window.location.href = '{{ url()->previous() }}'"
+                    >
+                        Back
+                    </x-filament::button>
+                @endif
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Feature;
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use App\Support\InvitationHelper;
@@ -119,6 +120,7 @@ class QRCodeController extends Controller
                     'path' => $pdfPath,
                 ]),
                 'imageUrl' => $disk->temporaryUrl($imagePath, now()->addMinutes(5)),
+                'hasSelfieFeature' => $invitation->hasFeature(Feature::FEATURES['selfie']),
             ]);
         } catch (Exception $e) {
             Log::error('QR Code view error', ['error' => $e->getMessage(), 'request' => $request->all()]);
