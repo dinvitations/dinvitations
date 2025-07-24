@@ -151,7 +151,6 @@ class TemplatesResource extends Resource
                                     'upload' => route('grapesjs.upload'),
                                     'headers' => [
                                         'X-CSRF-TOKEN' => csrf_token(),
-                                        'X-USER-ID' => auth()->user()->id,
                                     ],
                                     'uploadName' => 'files',
                                     'assets' => File::query()
