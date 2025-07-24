@@ -13,6 +13,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Response;
 use Maatwebsite\Excel\Facades\Excel;
 
 class HistoryOrdersResource extends Resource
@@ -79,7 +80,7 @@ class HistoryOrdersResource extends Resource
                                 $invitation = $record->invitation;
 
                                 if (!$invitation) {
-                                    abort(404, 'Invitation not found.');
+                                    abort(Response::HTTP_NOT_FOUND, 'Invitation not found.');
                                 }
 
                                 $guests = InvitationGuest::with('guest')
