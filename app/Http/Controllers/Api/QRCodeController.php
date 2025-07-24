@@ -106,8 +106,8 @@ class QRCodeController extends Controller
             }
 
             $fileName = "invitation_qrcode_{$guest->id}_{$qrPayload['type']}";
-            $pdfPath = "souvenir-qr/{$fileName}.pdf";
-            $imagePath = "souvenir-qr/{$fileName}.jpg";
+            $pdfPath = "souvenir-qr/{$guest->invitation_id}/pdf/{$fileName}.pdf";
+            $imagePath = "souvenir-qr/{$guest->invitation_id}/jpg/{$fileName}.jpg";
             $disk = Storage::disk('minio');
 
             if (!$disk->exists($pdfPath) || !$disk->exists($imagePath)) {
@@ -121,6 +121,8 @@ class QRCodeController extends Controller
                 'imageUrl' => $disk->temporaryUrl($imagePath, now()->addMinutes(5)),
             ]);
         } catch (Exception $e) {
+            Log::error('QR Code view error', ['error' => $e->getMessage(), 'request' => $request->all()]);
+
             if (!empty($guest?->attended_at)) {
                 $guest->attended_at = null;
                 $guest->save();

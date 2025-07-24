@@ -221,22 +221,33 @@ class InvitationHelper
      */
     public static function generateSouvenirQr(InvitationGuest $invitationGuest): ?string
     {
+        $disk = 'minio';
+        $path = implode('', [
+            'qr-codes/',
+            'souvenir_',
+            "{$invitationGuest->invitation?->slug}_",
+            "{$invitationGuest->guest?->id}.png"
+        ]);
+
         try {
-            $disk = 'minio';
-            $path = implode('', [
-                'qr-codes/',
-                'souvenir_',
-                "{$invitationGuest->invitation?->slug}_",
-                "{$invitationGuest->guest?->id}.png"
-            ]);
+            if (Storage::disk($disk)->exists($path)) {
+                if ($invitationGuest->souvenir_qr_path !== $path) {
+                    $invitationGuest->updateQuietly([
+                        'souvenir_qr_path' => $path,
+                    ]);
+                }
+                return $path;
+            }
+
             $qrContent = json_encode([
                 'id' => $invitationGuest->id,
                 'type' => 'souvenir',
             ]);
-            $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
-            Storage::disk($disk)->put($path, $qrCodeSvg);
 
-            if (!Storage::disk('minio')->exists($path)) {
+            $qrCodePng = QrCode::format('png')->size(250)->generate($qrContent);
+            Storage::disk($disk)->put($path, $qrCodePng);
+
+            if (!Storage::disk($disk)->exists($path)) {
                 throw new \Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
             }
 
@@ -248,7 +259,9 @@ class InvitationHelper
 
             return $path;
         } catch (\Throwable $th) {
-            Log::error("Failed to store QR file at $path");
+            Log::error("Failed to store QR file at $path", [
+                'exception' => $th,
+            ]);
             throw $th;
         }
     }
