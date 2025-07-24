@@ -106,6 +106,7 @@ return [
     ],
 
     'qr_api_key' => env('APP_QR_API_KEY', null),
+    'selfie_api_key' => env('APP_SELFIE_API_KEY', null),
 
     /*
     |--------------------------------------------------------------------------

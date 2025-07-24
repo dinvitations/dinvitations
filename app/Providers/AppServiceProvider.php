@@ -28,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
 
         FilamentAsset::register([
             Js::make('html5-qrcode', 'https://unpkg.com/html5-qrcode'),
+            Js::make('webcam', 'https://unpkg.com/webcam-easy/dist/webcam-easy.min.js'),
+            Js::make('selfieStation',  __DIR__ . '/../../resources/js/selfieStation.js'),
         ]);
     }
 }

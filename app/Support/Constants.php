@@ -18,6 +18,7 @@ class Constants
         ['slug' => 'invitation-templates', 'name' => 'Templates', 'type' => 'client'],
         ['slug' => 'guests', 'name' => 'Guests', 'type' => 'client'],
         ['slug' => 'history-orders', 'name' => 'History Orders', 'type' => 'client'],
+        ['slug' => 'selfie', 'name' => 'Selfie', 'type' => 'client'],
 
         ['slug' => 'dashboard', 'name' => 'Dashboard', 'type' => 'both'],
 
