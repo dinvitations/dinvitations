@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Spatie\PdfToImage\Pdf as PdfToImage;
 
 class QRCodeController extends Controller
@@ -28,15 +29,15 @@ class QRCodeController extends Controller
                 'qrPayload' => 'required|array',
                 'qrPayload.id' => 'required|string|exists:invitation_guests,id',
                 'qrPayload.type' => 'required|string|in:attendance,souvenir',
-                'userId' => 'required|string|exists:users,id',
                 'guestCount' => 'sometimes|integer|min:1',
             ]);
 
-            $qrPayload = $data['qrPayload'];
+            $userId = auth()?->user()?->id;
+
+            $qrPayload = $request->input('qrPayload');
             $guestId = $qrPayload['id'];
             $type = $qrPayload['type'];
-            $userId = $data['userId'];
-            $guestCount = $request->input('guestCount', 1);
+            $guestCount = (int) $request->input('guestCount', 1);
 
             $invitation = $this->getActiveInvitationForUser($userId);
             if (!$invitation) {
@@ -93,7 +94,7 @@ class QRCodeController extends Controller
 
             $invitation = $this->getActiveInvitationForUser($request->query('user'));
             if (!$invitation) {
-                abort(404, 'No active invitation found for this user.');
+                abort(Response::HTTP_NOT_FOUND, 'No active invitation found for this user.');
             }
 
             $guest = InvitationGuest::where('id', $qrPayload['id'])
@@ -113,8 +114,10 @@ class QRCodeController extends Controller
                 abort(Response::HTTP_NOT_FOUND, 'QR code file not found.');
             }
 
-            return view('livewire.qr-view', [
-                'pdfUrl' => $disk->temporaryUrl($pdfPath, now()->addMinutes(5)),
+            return view('livewire.view-qr-code', [
+                'pdfUrl' => URL::signedRoute('qrcode.print', [
+                    'path' => $pdfPath,
+                ]),
                 'imageUrl' => $disk->temporaryUrl($imagePath, now()->addMinutes(5)),
             ]);
         } catch (Exception $e) {
@@ -123,14 +126,49 @@ class QRCodeController extends Controller
                 $guest->save();
             }
 
-            abort(500, app()->isProduction()
+            abort(Response::HTTP_INTERNAL_SERVER_ERROR, app()->isProduction()
                 ? 'Something went wrong while generating the QR code.'
                 : 'Failed to generate QR: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Print QR code PDF.
+     */
+    public function print(Request $request)
+    {
+        if (!$request->hasValidSignature() || !$request->has('path')) {
+            abort(Response::HTTP_FORBIDDEN, 'The link has expired or is invalid.');
+        }
+
+        $path = $request->query('path');
+        $disk = Storage::disk('minio');
+
+        if (!Str::startsWith($path, 'souvenir-qr/') || !$disk->exists($path)) {
+            abort(Response::HTTP_NOT_FOUND, 'File not found or access denied.');
+        }
+
+        $mimeType = $disk->mimeType($path);
+        $filename = basename($path);
+        $stream = $disk->readStream($path);
+
+        return response()->stream(function () use ($stream) {
+            fpassthru($stream);
+            fclose($stream);
+        }, Response::HTTP_OK, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+        ]);
+    }
+
     protected function handleAttendance(InvitationGuest $guest, int $guestCount, string $userId)
     {
+        // if ($guest->attended_at) {
+        //     return $this->error('Guest has already checked in.', Response::HTTP_BAD_REQUEST);
+        // }
+
         $guest->update([
             'attended_at' => now(),
             'guest_count' => $guestCount,
@@ -138,8 +176,8 @@ class QRCodeController extends Controller
 
         $souvenirQrPath = InvitationHelper::generateSouvenirQr($guest);
         $fileName = "invitation_qrcode_{$guest->id}_souvenir";
-        $pdfPath = "souvenir-qr/{$fileName}.pdf";
-        $imagePath = "souvenir-qr/{$fileName}.jpg";
+        $pdfPath = "souvenir-qr/{$guest->invitation_id}/pdf/{$fileName}.pdf";
+        $imagePath = "souvenir-qr/{$guest->invitation_id}/jpg/{$fileName}.jpg";
 
         $disk = Storage::disk('minio');
         $qrBinary = $disk->get($souvenirQrPath);
@@ -163,7 +201,7 @@ class QRCodeController extends Controller
             'path' => $souvenirQrPath,
         ]));
 
-        $signedUrl = URL::signedRoute('api.qr_view', [
+        $signedUrl = URL::signedRoute('qrcode.view', [
             'qr' => $payload,
             'user' => $userId,
         ]);
@@ -171,21 +209,17 @@ class QRCodeController extends Controller
         return response()->json([
             'message' => 'Check-in successful.',
             'guest_id' => $guest->id,
-            'qr_view_url' => $signedUrl,
+            'qrcode_view_url' => $signedUrl,
         ]);
     }
 
     protected function handleSouvenir(InvitationGuest $guest, Invitation $invitation)
     {
-        if ($guest->souvenir_at) {
-            return $this->error('Souvenir already taken.', Response::HTTP_BAD_REQUEST);
-        }
+        // if ($guest->souvenir_at) {
+        //     return $this->error('Souvenir already taken.', Response::HTTP_BAD_REQUEST);
+        // }
 
-        $claimed = InvitationGuest::where('invitation_id', $invitation->id)
-            ->whereNotNull('souvenir_at')
-            ->count();
-
-        if (($invitation->souvenir_stock - $claimed) <= 0) {
+        if (($invitation->availableSouvenirStock()) <= 0) {
             return $this->error('No more souvenir stock available.', Response::HTTP_BAD_REQUEST);
         }
 

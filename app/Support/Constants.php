@@ -19,6 +19,7 @@ class Constants
         ['slug' => 'guests', 'name' => 'Guests', 'type' => 'client'],
         ['slug' => 'history-orders', 'name' => 'History Orders', 'type' => 'client'],
         ['slug' => 'selfie', 'name' => 'Selfie', 'type' => 'client'],
+        ['slug' => 'qrcode', 'name' => 'QRCode', 'type' => 'client'],
 
         ['slug' => 'dashboard', 'name' => 'Dashboard', 'type' => 'both'],
 
