@@ -13,6 +13,7 @@ use Dotswan\FilamentGrapesjs\Fields\GrapesJs;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,14 +51,23 @@ class InvitationTemplateResource extends Resource
                                 Forms\Components\Hidden::make('template_id')
                                     ->formatStateUsing(fn() => request()->query('template_id')),
                                 Forms\Components\TextInput::make('slug')
-                                    ->label('Slug')
-                                    ->formatStateUsing(fn($record) => $record->slug ?? Str::slug($record->event_name))
                                     ->required()
-                                    ->notIn(Constants::get('MENU', 'slug'))
                                     ->unique(ignoreRecord: true)
-                                    ->maxLength(50),
+                                    ->notIn(Constants::get('MENU', 'slug'))
+                                    ->maxLength(255)
+                                    ->mask(
+                                        RawJs::make(<<<'JS'
+                                            $input => {
+                                                return $input
+                                                    .toLowerCase()
+                                                    .replace(/[^a-z0-9\s-]/g, '')
+                                                    .replace(/\s+/g, '-')
+                                                    .replace(/-+/g, '-');
+                                            }
+                                        JS)
+                                    )
+                                    ->formatStateUsing(fn($record) => $record->slug ?? Str::slug($record->event_name)),
                                 Forms\Components\DateTimePicker::make('published_at')
-                                    ->label('Published at')
                                     ->required(),
                             ])
                     ]),
@@ -139,7 +149,7 @@ class InvitationTemplateResource extends Resource
                                 'grapesjs-style-bg',
                                 'grapesjs-tabs',
                                 'grapesjs-tooltip',
-                                'grapesjs-touch',
+                                // 'grapesjs-touch',
                                 'grapesjs-tui-image-editor',
                                 'grapesjs-typed',
                             ])
