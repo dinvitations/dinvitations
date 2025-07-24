@@ -11,6 +11,7 @@ use Filament\Http\Middleware\Authenticate;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(Authenticate::class)->group(function () {
+    Route::post('/grapesjs/upload', [GrapesJSUploadController::class, 'upload'])->name('grapesjs.upload');
     Route::post('/selfie/upload', [SelfieController::class, 'upload'])->name('selfie.upload');
     Route::post('/qrcode/scan', [QRCodeController::class, 'store'])->name('qrcode.scan');
 
@@ -23,5 +24,4 @@ Route::middleware('signed')->get('/qrcode/print', [QRCodeController::class, 'pri
 Route::get('/template-views/{slug}', ShowTemplate::class)->name('templates.show');
 Route::get('/{slug}', ShowInvitation::class)->name('invitation.show');
 
-Route::post('/grapesjs/upload', [GrapesJSUploadController::class, 'upload'])->name('grapesjs.upload');
 Route::post('/rsvp', [RSVPController::class, 'store'])->name('rsvp');

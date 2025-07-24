@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -23,16 +24,11 @@ class GrapesJSUploadController extends Controller
                 'files.*' => 'required|file|max:10240', // 10MB per file
             ]);
 
-            $userId = $request->header('X-USER-ID');
-            $user = User::find($userId);
-
-            if (!$user) {
-                return response()->json(['message' => 'Invalid user.'], 403);
-            }
+            $userId = auth()?->user()?->id;
 
             $uploads = $request->file('files', []);
             if (empty($uploads)) {
-                return response()->json(['message' => 'No files uploaded.'], 400);
+                return response()->json(['message' => 'No files uploaded.'], Response::HTTP_NOT_FOUND);
             }
 
             $uploaded = [];
@@ -52,14 +48,14 @@ class GrapesJSUploadController extends Controller
                         'path' => $path,
                         'disk' => $disk,
                         'filename' => $originalName,
-                        'user_id' => $user->id,
+                        'user_id' => $userId,
                     ]);
                     continue;
                 }
 
                 $file = File::create([
                     'fileable_type' => User::class,
-                    'fileable_id' => $user->id,
+                    'fileable_id' => $userId,
                     'name' => $filename,
                     'original_name' => $originalName,
                     'filename' => $uuid,
@@ -84,16 +80,16 @@ class GrapesJSUploadController extends Controller
             return response()->json([
                 'message' => 'Validation failed.',
                 'errors' => $e->errors(),
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (Throwable $e) {
             Log::error('GrapesJS upload failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'user_id' => optional($user)->id,
+                'user_id' => $userId,
                 'request' => $request->all(),
             ]);
 
-            return response()->json(['message' => 'Upload failed.'], 500);
+            return response()->json(['message' => 'Upload failed.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 

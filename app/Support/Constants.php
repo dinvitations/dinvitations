@@ -25,6 +25,7 @@ class Constants
 
         ['slug' => 'template-views', 'name' => 'Template Views', 'type' => 'global'],
         ['slug' => 'api', 'name' => 'API', 'type' => 'global'],
+        ['slug' => 'grapesjs', 'name' => 'GrapesJs', 'type' => 'global'],
         ['slug' => 'telescope', 'name' => 'Telescope', 'type' => 'global'],
     ];
 
