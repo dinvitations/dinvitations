@@ -106,9 +106,9 @@ class LastAttendance extends BaseWidget
                                 'souvenirAt' => $record->souvenir_at?->format('M d, Y \a\t h:i A'),
                                 'leftAt' => $record->left_at?->format('M d, Y \a\t h:i A'),
                                 'guestCount' => $record->guest_count,
-                                'souvenirQrPath' => empty($record->souvenir_qr_path)
-                                    ? null
-                                    : Storage::disk('minio')->temporaryUrl($record->souvenir_qr_path,now()->addMinutes(5)),
+                                'souvenirQrPath' => Storage::disk('minio')->exists($record->souvenir_qr_path)
+                                    ? Storage::disk('minio')->temporaryUrl($record->souvenir_qr_path, now()->addMinutes(5))
+                                    : null,
                             ]);
                         }),
                     Action::make('claimSouvenir')

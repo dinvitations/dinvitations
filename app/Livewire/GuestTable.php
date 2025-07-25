@@ -220,7 +220,7 @@ class GuestTable extends Component implements HasTable, HasForms
                         if ($this->invitationGuest)
                             DB::transaction(function () use ($path) {
                                 $this->invitationGuest->update([
-                                    'qr_code_path' => $path,
+                                    'attendance_qr_path' => $path,
                                 ]);
                             });
 
