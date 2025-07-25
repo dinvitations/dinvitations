@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('invitation_guests', function (Blueprint $table) {
-            $table->timestamp('left_at')->nullable()->after('selfie_at');
-            $table->unsignedInteger('guest_count')->default(1)->after('left_at');
-        });
+        if (!Schema::hasColumns('invitation_guests', ['left_at', 'guest_count'])) {
+            Schema::table('invitation_guests', function (Blueprint $table) {
+                $table->timestamp('left_at')->nullable()->after('selfie_at');
+                $table->unsignedInteger('guest_count')->default(1)->after('left_at');
+            });
+        }
     }
 
     /**
