@@ -14,7 +14,9 @@ use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Response;
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use ZipArchive;
 
 class HistoryOrdersResource extends Resource
 {
@@ -102,24 +104,69 @@ class HistoryOrdersResource extends Resource
                                             'souvenir_at'     => $entry->souvenir_at ? $entry->souvenir_at->format('h.i A') : '-',
                                             'selfie_at'       => $entry->selfie_at ? $entry->selfie_at->format('h.i A') : '-',
                                             'attendance_date' => $attendedAt ? $attendedAt->toDateString() : null,
+                                            'selfie_photo_url' => $entry->selfie_photo_url ?? null,
                                         ];
-                                    })
-                                    ->sortBy(function ($guest) {
+                                    });
+
+                                $guestByDate = $guests->sortBy(function ($guest) {
                                         return $guest['attendance_date'] ?? '9999-12-31';
                                     })
                                     ->groupBy('attendance_date');
 
-                                $pdf = Pdf::loadView('pdf.guestbook', [
+                                $guestSelfie = $guests->whereNotNull('selfie_photo_url')
+                                    ->map(function ($guest) use (&$tempSelfiePaths) {
+                                        $path = $guest['selfie_photo_url'];
+
+                                        if (Storage::disk('minio')->exists($path)) {
+                                            $imageContents = Storage::disk('minio')->get($path);
+                                            $tempFilename = 'temp_selfie_' . Str::uuid() . '.png';
+                                            $tempPath = storage_path('app/public/' . $tempFilename);
+
+                                            file_put_contents($tempPath, $imageContents);
+                                            $guest['selfie_photo_url'] = $tempPath;
+                                            $tempSelfiePaths[] = $tempPath;
+                                        } else {
+                                            $guest['selfie_photo_url'] = null;
+                                        }
+
+                                        return $guest;
+                                    })
+                                    ->sortBy('selfie_at');
+
+                                $guestBookPath = storage_path('app/public/guestbook_' . $record->order_number . '.pdf');
+                                Pdf::loadView('pdf.guestbook', [
                                     'invitation' => $invitation,
-                                    'guestsByDate' => $guests,
+                                    'guestsByDate' => $guestByDate,
                                     'dateStart' => $invitation->date_start,
                                     'dateEnd' => $invitation->date_end,
-                                ])->setPaper('a4', 'landscape');
+                                ])->setPaper('a4', 'landscape')->save($guestBookPath);
 
-                                return response()->streamDownload(
-                                    fn() => print($pdf->stream()),
-                                    'guestbook_' . $record->order_number . '.pdf'
-                                );
+                                $selfieBookPath = storage_path('app/public/selfiebook_' . $record->order_number . '.pdf');
+                                Pdf::loadView('pdf.selfiebook', [
+                                    'invitation' => $invitation,
+                                    'guestSelfie' => $guestSelfie,
+                                    'dateStart' => $invitation->date_start,
+                                    'dateEnd' => $invitation->date_end,
+                                ])->setPaper('a4', 'landscape')->save($selfieBookPath);
+
+                                $zipPath = storage_path('app/public/books_' . $record->order_number . '.zip');
+                                $zip = new ZipArchive();
+                                if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
+                                    $zip->addFile($guestBookPath, 'guestbook.pdf');
+                                    $zip->addFile($selfieBookPath, 'selfiebook.pdf');
+                                    $zip->close();
+                                }
+
+                                register_shutdown_function(function () use ($guestBookPath, $selfieBookPath, $tempSelfiePaths) {
+                                    @unlink($guestBookPath);
+                                    @unlink($selfieBookPath);
+
+                                    foreach ($tempSelfiePaths as $tempPath) {
+                                        @unlink($tempPath);
+                                    }
+                                });
+
+                                return response()->download($zipPath)->deleteFileAfterSend(true);
                             })
                             ->after(function ($record) {
                                 Notification::make()

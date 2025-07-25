@@ -48,10 +48,6 @@ class SelfieController extends Controller
                 return response()->json(['message' => 'Guest not found for this event.'], Response::HTTP_NOT_FOUND);
             }
 
-            $guest->selfie_at = now();
-            $guest->save();
-
-            // Prepare image data
             if (preg_match('/^data:image\/(\w+);base64,/', $photoData, $type)) {
                 $photoData = substr($photoData, strpos($photoData, ',') + 1);
                 $extension = strtolower($type[1]);
@@ -94,6 +90,14 @@ class SelfieController extends Controller
                 'status' => 'uploaded',
                 'visibility' => 'public',
             ]);
+
+            if (!$file) {
+                throw new \Exception('Failed to create file record for selfie.');
+            }
+
+            $guest->selfie_photo_url = $file->path;
+            $guest->selfie_at = now();
+            $guest->save();
 
             Notification::make()
                 ->title('Selfie saved successfully')

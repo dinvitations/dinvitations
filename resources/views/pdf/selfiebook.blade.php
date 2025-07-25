@@ -23,6 +23,8 @@
             align-items: center;
             height: 100vh;
             position: relative;
+            padding: 60px;
+            box-sizing: border-box;
         }
 
         .page-break {
@@ -39,59 +41,71 @@
             transform: translate(-50%, -50%);
         }
 
+        .footer, .footer-right, .footer-left, .back-footer {
+            font-size: 18px;
+        }
+
         .footer {
             position: absolute;
             text-align: right;
             bottom: 60px;
             right: 60px;
-            font-size: 18px;
         }
 
         .back-footer {
             position: absolute;
             bottom: 60px;
             left: 60px;
-            font-size: 18px;
         }
 
-        .table-page {
-            padding: 60px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .footer-left {
+            position: absolute;
+            bottom: 40px;
+            left: 60px;
             font-size: 14px;
-            margin-top: 60px;
         }
 
-        th,
-        td {
-            padding: 10px;
-            text-align: left;
+        .footer-right {
+            position: absolute;
+            bottom: 40px;
+            right: 60px;
+            font-size: 14px;
         }
-        
-        th {
+
+        .guest-name {
+            font-size: 20px;
             font-weight: bold;
-            border-bottom: 1px solid #aaa;
-            text-align: center; /* ✅ Center all headers */
+            text-align: center;
+            margin-bottom: 4px;
         }
 
-        td.center {
-            text-align: center; /* ✅ Use for selected cells */
-        }
-
-        .date-top {
-            text-align: right;
+        .guest-time {
             font-size: 14px;
-            margin-top: -20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .selfie-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .selfie-container img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 16px;
         }
     </style>
 </head>
 
 <body>
+
     @php
         $sameDay = $dateStart->toDateString() === $dateEnd->toDateString();
+        $pageCount = 1;
     @endphp
 
     {{-- Cover Page --}}
@@ -111,42 +125,24 @@
         </div>
     </div>
 
-    {{-- Table Page --}}
-    @foreach ($guestsByDate as $date => $guests)
-        @php
-            $chunks = collect($guests)->chunk(15);
-        @endphp
-
-        @foreach ($chunks as $pageIndex => $chunk)
-        <div class="page table-page page-break">
-            <div style="font-weight: bold;">{{ $invitation->event_name }}</div>
-            
-            <div class="date-top">
-                {{ $date ? \Carbon\Carbon::parse($date)->format('F d, Y') : 'Not Attended' }}
+    {{-- Selfie Pages --}}
+    @foreach ($guestSelfie as $guest)
+        <div class="page page-break">
+            <div class="guest-name">{{ $guest['name'] }}</div>
+            <div class="guest-time">
+                {{ \Carbon\Carbon::parse($guest['selfie_at'])->format('F d, Y \a\t h:i A') }}
             </div>
 
-            <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Attended</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($chunk as $index => $guest)
-                    <tr>
-                        <td class="center">{{ $index + 1 }}</td>
-                        <td>{{ $guest['name'] }}</td>
-                        <td class="center">{{ $guest['type'] }}</td>
-                        <td class="center">{{ $guest['attended_at'] ?: '' }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <div class="selfie-container">
+                @if ($guest['selfie_photo_url'])
+                    <img src="{{ $guest['selfie_photo_url'] }}" alt="Selfie of {{ $guest['name'] }}">
+                @endif
+            </div>
+
+            <div class="footer-left">{{ $guest['type'] }}</div>
+            <div class="footer-right">{{ $pageCount }}/{{ count($guestSelfie) }}</div>
         </div>
-        @endforeach
+        @php $pageCount++; @endphp
     @endforeach
 
     {{-- Back Cover Page --}}
