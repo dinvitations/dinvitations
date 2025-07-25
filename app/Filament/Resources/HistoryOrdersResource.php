@@ -52,7 +52,7 @@ class HistoryOrdersResource extends Resource
                     ->dateTime('M d, Y')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('invitation.name')
+                Tables\Columns\TextColumn::make('invitation.event_name')
                     ->label('Event Name')
                     ->searchable()
                     ->sortable(),
