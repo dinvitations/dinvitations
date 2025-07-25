@@ -19,22 +19,39 @@
                     type="button"
                     color="primary"
                     x-on:click="printPdf()"
+                    icon="heroicon-o-printer"
                 >
                     Print PDF
                 </x-filament::button>
 
                 @if($hasSelfieFeature)
-                    <x-filament::button
-                        type="button"
-                        color="gray"
-                        x-on:click="window.location.href = '{{ route('selfie.capture') }}'"
-                    >
-                        Continue to Selfie
-                    </x-filament::button>
+                    <div class="flex justify-between gap-3">
+                        <x-filament::button
+                            type="button"
+                            color="gray"
+                            class="flex-1"
+                            icon="heroicon-o-chevron-left"
+                            x-on:click="window.location.href = '{{ url()->previous() }}'"
+                        >
+                            Back
+                        </x-filament::button>
+
+                        <x-filament::button
+                            type="button"
+                            color="gray"
+                            class="flex-1"
+                            icon="heroicon-o-chevron-right"
+                            icon-position="after"
+                            x-on:click="window.location.href = '{{ route('selfie.capture') }}'"
+                        >
+                            Continue to Selfie
+                        </x-filament::button>
+                    </div>
                 @else
                     <x-filament::button
                         type="button"
                         color="gray"
+                        icon="heroicon-o-chevron-left"
                         x-on:click="window.location.href = '{{ url()->previous() }}'"
                     >
                         Back
