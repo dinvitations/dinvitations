@@ -52,7 +52,6 @@ class LastAttendance extends BaseWidget
                     })
                     ->whereNotNull('attended_at')
                     ->orderByRaw('left_at IS NOT NULL')
-                    ->orderByDesc('attended_at')
             )
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No attendance yet')
