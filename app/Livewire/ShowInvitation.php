@@ -73,9 +73,9 @@ class ShowInvitation extends Component
                 $this->data['guest'] = [
                     'id' => $guest->id,
                     'guest_name' => $guest->guest?->name,
-                    'qrcode' => Storage::disk('minio')->exists($guest->qr_code_path)
+                    'qrcode' => Storage::disk('minio')->exists($guest->attendance_qr_path)
                         ? Storage::disk('minio')->temporaryUrl(
-                            $guest->qr_code_path,
+                            $guest->attendance_qr_path,
                             now()->addMinutes(10)
                         ) : null,
                     'rsvp' => $guest->rsvp

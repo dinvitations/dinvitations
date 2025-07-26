@@ -6,6 +6,8 @@
         "dev": "vite"
     },
     "dependencies": {
+        "@alpinejs/focus": "^3.14.9",
+        "alpinejs": "^3.14.9",
         "axios": "^1.7.4",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^1.0",

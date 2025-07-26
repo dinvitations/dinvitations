@@ -23,9 +23,9 @@ class StatsOverview extends BaseWidget
     
             $invitation = Invitation::query()
                 ->whereHas('order', function (Builder $query) use ($user) {
-                    $query->where('status', 'active');
-                    $query->where('user_id', $user->id);
-                })
+                    $query->where('status', 'active')
+                        ->where('user_id', $user->id);
+                }, '=', 1)
                 ->whereNotNull('published_at')
                 ->first();
 

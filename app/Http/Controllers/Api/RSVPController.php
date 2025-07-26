@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\InvitationGuest;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -33,7 +34,7 @@ class RSVPController extends Controller
                 'status' => 'error',
                 'message' => 'Validation failed.',
                 'errors' => $e->errors(),
-            ], 422);
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (Throwable $e) {
             Log::error('RSVP submission failed', [
                 'error' => $e->getMessage(),
@@ -44,7 +45,7 @@ class RSVPController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Something went wrong. Please try again later.',
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

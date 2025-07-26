@@ -179,7 +179,7 @@ class GuestTable extends Component implements HasTable, HasForms
                             ->success()
                             ->send();
                     })
-                    ->after(function (Guest $record, $action) {
+                    ->after(function (Guest $record, $livewire) {
                         $order = auth()->user()->orders()
                             ->where('status', 'active')
                             ->whereHas('invitation', function ($query) {
@@ -194,7 +194,6 @@ class GuestTable extends Component implements HasTable, HasForms
                         ));
                         $rawPhoneNumber = preg_replace('/\D+/', '', $record->phone_number);
                         $waMeUrl = "https://api.whatsapp.com/send?phone=$rawPhoneNumber&text=$parsedMessage";
-                        info($waMeUrl);
 
                         // Generate QR code for guest attendance
                         try {
@@ -205,7 +204,7 @@ class GuestTable extends Component implements HasTable, HasForms
                                 "$record->id.png"
                             ]);
                             $qrContent = json_encode([
-                                'id' => $record->id,
+                                'id' => $this->invitationGuest->id,
                                 'type' => 'attendance',
                             ]);
                             $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
@@ -221,11 +220,11 @@ class GuestTable extends Component implements HasTable, HasForms
                         if ($this->invitationGuest)
                             DB::transaction(function () use ($path) {
                                 $this->invitationGuest->update([
-                                    'qr_code_path' => $path,
+                                    'attendance_qr_path' => $path,
                                 ]);
                             });
 
-                        return redirect()->away($waMeUrl);
+                        $livewire->js("window.open('$waMeUrl', '_blank')");
                     }),
 
                 Actions\Action::make('copy')

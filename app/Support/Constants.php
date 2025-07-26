@@ -18,11 +18,14 @@ class Constants
         ['slug' => 'invitation-templates', 'name' => 'Templates', 'type' => 'client'],
         ['slug' => 'guests', 'name' => 'Guests', 'type' => 'client'],
         ['slug' => 'history-orders', 'name' => 'History Orders', 'type' => 'client'],
+        ['slug' => 'selfie', 'name' => 'Selfie', 'type' => 'client'],
+        ['slug' => 'qrcode', 'name' => 'QRCode', 'type' => 'client'],
 
         ['slug' => 'dashboard', 'name' => 'Dashboard', 'type' => 'both'],
 
         ['slug' => 'template-views', 'name' => 'Template Views', 'type' => 'global'],
         ['slug' => 'api', 'name' => 'API', 'type' => 'global'],
+        ['slug' => 'grapesjs', 'name' => 'GrapesJs', 'type' => 'global'],
         ['slug' => 'telescope', 'name' => 'Telescope', 'type' => 'global'],
     ];
 

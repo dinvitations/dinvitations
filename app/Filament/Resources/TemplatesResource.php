@@ -47,7 +47,6 @@ class TemplatesResource extends Resource
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255)
-                            ->reactive()
                             ->afterStateUpdated(function (callable $set, $state) {
                                 $set('slug', Str::slug($state));
                             })
@@ -77,6 +76,34 @@ class TemplatesResource extends Resource
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
+                Forms\Components\Section::make()
+                    ->schema([
+                        Forms\Components\FileUpload::make('display_background_landscape_url')
+                            ->label('Display Screen - Background (Landscape)')
+                            ->disk('minio')
+                            ->directory('display-backgrounds')
+                            ->visibility('private')
+                            ->image()
+                            ->imageEditor()
+                            ->imageResizeMode('force')
+                            ->imageCropAspectRatio('16:9')
+                            ->imageResizeTargetWidth(1920)
+                            ->imageResizeTargetHeight(1080)
+                            ->columnSpanFull(),
+
+                        Forms\Components\FileUpload::make('display_background_portrait_url')
+                            ->label('Display Screen - Background (Portrait)')
+                            ->disk('minio')
+                            ->directory('display-backgrounds')
+                            ->visibility('private')
+                            ->image()
+                            ->imageEditor()
+                            ->imageResizeMode('force')
+                            ->imageCropAspectRatio('9:16')
+                            ->imageResizeTargetWidth(1080)
+                            ->imageResizeTargetHeight(1920)
+                            ->columnSpanFull(),
+                    ]),
                 Forms\Components\Section::make()
                     ->schema([
                         GrapesJs::make('template_builder')
@@ -143,7 +170,7 @@ class TemplatesResource extends Resource
                                 'grapesjs-style-bg',
                                 'grapesjs-tabs',
                                 'grapesjs-tooltip',
-                                'grapesjs-touch',
+                                // 'grapesjs-touch',
                                 'grapesjs-tui-image-editor',
                                 'grapesjs-typed',
                             ])
@@ -152,7 +179,6 @@ class TemplatesResource extends Resource
                                     'upload' => route('grapesjs.upload'),
                                     'headers' => [
                                         'X-CSRF-TOKEN' => csrf_token(),
-                                        'X-USER-ID' => auth()->user()->id,
                                     ],
                                     'uploadName' => 'files',
                                     'assets' => File::query()

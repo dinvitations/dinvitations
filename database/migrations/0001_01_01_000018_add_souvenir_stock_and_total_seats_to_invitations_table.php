@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('invitations', function (Blueprint $table) {
-            $table->unsignedInteger('souvenir_stock')->nullable()->default(0)->after('date_end');
-            $table->unsignedInteger('total_seats')->nullable()->default(0)->after('souvenir_stock');
-        });
+        if (!Schema::hasColumns('invitations', ['souvenir_stock', 'total_seats'])) {
+            Schema::table('invitations', function (Blueprint $table) {
+                $table->unsignedInteger('souvenir_stock')->nullable()->default(0)->after('date_end');
+                $table->unsignedInteger('total_seats')->nullable()->default(0)->after('souvenir_stock');
+            });
+        }
     }
 
     /**
