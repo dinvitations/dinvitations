@@ -134,7 +134,7 @@ class SelfieStationResource extends Resource
                 $query->whereNotNull('published_at')
                     ->whereHas('order', function ($subQuery) {
                         $subQuery->where('status', 'active')
-                            ->where('user_id', auth()->id())
+                            ->where('user_id', auth()->user()->id)
                             ->whereHas('package.features', function ($featureQuery) {
                                 $featureQuery->where('name', Feature::FEATURES['selfie']);
                             });
