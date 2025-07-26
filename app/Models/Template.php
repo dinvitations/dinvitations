@@ -21,7 +21,9 @@ class Template extends Model
         'slug',
         'package_id',
         'event_id',
-        'preview_url'
+        'preview_url',
+        'display_background_landscape_url',
+        'display_background_portrait_url'
     ];
 
     public function package()

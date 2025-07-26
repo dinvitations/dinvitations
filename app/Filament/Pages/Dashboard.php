@@ -29,7 +29,7 @@ class Dashboard extends BaseDashboard
                     ->color('primary')
                     ->modalWidth('md')
                     ->modalHeading('Scan QRCode')
-                    ->modalContent(view('filament.partials.scan-qr-code'))
+                    ->modalContent(view('livewire.scan-qr-code'))
             ];
         } else {
             $actions = [

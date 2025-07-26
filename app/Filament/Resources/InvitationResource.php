@@ -346,9 +346,9 @@ class InvitationResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->whereHas('order', function ($subQuery) {
-                $subQuery->where('status', 'active');
-                $subQuery->where('user_id', auth()->user()->id);
+            ->whereHas('order', function ($query) {
+                $query->where('status', 'active')
+                    ->where('user_id', auth()->user()->id);
             }, '=', 1);
     }
 

@@ -23,9 +23,9 @@ class LastAttendance extends BaseWidget
     protected function getTableHeading(): string | Htmlable | null
     {
         $invitation = Invitation::whereNotNull('published_at')
-            ->whereHas('order', function ($subQuery) {
-                $subQuery->where('status', 'active');
-                $subQuery->where('user_id', auth()->user()->id);
+            ->whereHas('order', function ($query) {
+                $query->where('status', 'active')
+                    ->where('user_id', auth()->user()->id);
             }, '=', 1)
             ->first();
 
@@ -52,7 +52,6 @@ class LastAttendance extends BaseWidget
                     })
                     ->whereNotNull('attended_at')
                     ->orderByRaw('left_at IS NOT NULL')
-                    ->orderByDesc('attended_at')
             )
             ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No attendance yet')
@@ -106,9 +105,9 @@ class LastAttendance extends BaseWidget
                                 'souvenirAt' => $record->souvenir_at?->format('M d, Y \a\t h:i A'),
                                 'leftAt' => $record->left_at?->format('M d, Y \a\t h:i A'),
                                 'guestCount' => $record->guest_count,
-                                'souvenirQrPath' => empty($record->souvenir_qr_path)
-                                    ? null
-                                    : Storage::disk('minio')->temporaryUrl($record->souvenir_qr_path,now()->addMinutes(5)),
+                                'souvenirQrPath' => Storage::disk('minio')->exists($record->souvenir_qr_path)
+                                    ? Storage::disk('minio')->temporaryUrl($record->souvenir_qr_path, now()->addMinutes(5))
+                                    : null,
                             ]);
                         }),
                     Action::make('claimSouvenir')

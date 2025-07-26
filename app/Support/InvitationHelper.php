@@ -115,6 +115,10 @@ class InvitationHelper
 
     public static function getHtml($html, $replacements = []): string
     {
+        if (trim($html) === '') {
+            return '';
+        }
+
         libxml_use_internal_errors(true);
 
         $dom = new \DOMDocument();
@@ -128,34 +132,16 @@ class InvitationHelper
             $containers = $xpath->query("//*[@data-rsvp-block-id]");
 
             foreach ($containers as $container) {
-                $blockId = $container->getAttribute('data-rsvp-block-id');
-                $yesButton = $dom->getElementById("rsvp-yes-$blockId");
-                $noButton = $dom->getElementById("rsvp-no-$blockId");
+                $container->setAttribute('data-guest-id', $guestId);
 
-                if ($rsvpValue === null) {
-                    if ($yesButton) {
-                        $yesButton->setAttribute('onclick', "submitRSVP('$guestId', true, '$blockId')");
-                    }
-                    if ($noButton) {
-                        $noButton->setAttribute('onclick', "submitRSVP('$guestId', false, '$blockId')");
-                    }
+                if ($rsvpValue === true || $rsvpValue === false) {
+                    $container->setAttribute('data-rsvp', $rsvpValue ? 'true' : 'false');
                 } else {
-                    while ($container->hasChildNodes()) {
-                        $container->removeChild($container->firstChild);
-                    }
-
-                    $thankYouHtml = '<p style="font-size: 21px; text-align: center;">Thank you for confirming your attendance.</p>';
-                    $tmpDoc = new \DOMDocument();
-                    $tmpDoc->loadHTML(mb_convert_encoding('<body>' . $thankYouHtml . '</body>', 'HTML-ENTITIES', 'UTF-8'));
-
-                    $body = $tmpDoc->getElementsByTagName('body')->item(0);
-                    foreach ($body->childNodes as $child) {
-                        $imported = $dom->importNode($child, true);
-                        $container->appendChild($imported);
-                    }
+                    $container->setAttribute('data-rsvp', 'null');
                 }
             }
         }
+
 
         foreach ($replacements as $key => $value) {
             if ($key === 'RSVP') continue;
@@ -235,22 +221,33 @@ class InvitationHelper
      */
     public static function generateSouvenirQr(InvitationGuest $invitationGuest): ?string
     {
+        $disk = 'minio';
+        $path = implode('', [
+            'qr-codes/',
+            'souvenir_',
+            "{$invitationGuest->invitation?->slug}_",
+            "{$invitationGuest->guest?->id}.png"
+        ]);
+
         try {
-            $disk = 'minio';
-            $path = implode('', [
-                'qr-codes/',
-                'souvenir_',
-                "{$invitationGuest->invitation?->slug}_",
-                "{$invitationGuest->guest?->id}.png"
-            ]);
+            if (Storage::disk($disk)->exists($path)) {
+                if ($invitationGuest->souvenir_qr_path !== $path) {
+                    $invitationGuest->updateQuietly([
+                        'souvenir_qr_path' => $path,
+                    ]);
+                }
+                return $path;
+            }
+
             $qrContent = json_encode([
                 'id' => $invitationGuest->id,
                 'type' => 'souvenir',
             ]);
-            $qrCodeSvg = QrCode::format('png')->size(250)->generate($qrContent);
-            Storage::disk($disk)->put($path, $qrCodeSvg);
 
-            if (!Storage::disk('minio')->exists($path)) {
+            $qrCodePng = QrCode::format('png')->size(250)->generate($qrContent);
+            Storage::disk($disk)->put($path, $qrCodePng);
+
+            if (!Storage::disk($disk)->exists($path)) {
                 throw new \Exception("Failed to store QR file at $path", Response::HTTP_INTERNAL_SERVER_ERROR);
             }
 
@@ -262,7 +259,10 @@ class InvitationHelper
 
             return $path;
         } catch (\Throwable $th) {
-            Log::error("Failed to store QR file at $path");
+            Log::error("Failed to store QR file at $path", [
+                'exception' => $th,
+            ]);
+            throw $th;
         }
     }
 }

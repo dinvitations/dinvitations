@@ -73,9 +73,9 @@ class ShowInvitation extends Component
                 $this->data['guest'] = [
                     'id' => $guest->id,
                     'guest_name' => $guest->guest?->name,
-                    'qrcode' => Storage::disk('minio')->exists($guest->qr_code_path)
+                    'qrcode' => Storage::disk('minio')->exists($guest->attendance_qr_path)
                         ? Storage::disk('minio')->temporaryUrl(
-                            $guest->qr_code_path,
+                            $guest->attendance_qr_path,
                             now()->addMinutes(10)
                         ) : null,
                     'rsvp' => $guest->rsvp
@@ -123,23 +123,5 @@ class ShowInvitation extends Component
             'js' => $this->data['js'],
             'guest' => $this->data['guest'] ?? []
         ]);
-    }
-
-    public function rsvp(string $guestId, bool $rsvp)
-    {
-        if (!Str::isUuid($guestId)) {
-            return;
-        }
-        
-        $guest = InvitationGuest::find($guestId);
-
-        if ($guest) {
-            $guest->rsvp = $rsvp;
-            $guest->save();
-
-            if (isset($this->data['guest']) && $this->data['guest']['id'] == $guestId) {
-                $this->data['guest']['rsvp'] = $rsvp;
-            }
-        }
     }
 }

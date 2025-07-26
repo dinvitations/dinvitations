@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('invitation_guests', function (Blueprint $table) {
-            $table->string('souvenir_qr_path')->nullable();
-        });
+        if (!Schema::hasColumns('invitation_guests', ['attendance_qr_path', 'souvenir_qr_path'])) {
+            Schema::table('invitation_guests', function (Blueprint $table) {
+                $table->string('attendance_qr_path')->nullable();
+                $table->string('souvenir_qr_path')->nullable();
+            });
+        }
     }
 
     /**
@@ -22,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('invitation_guests', function (Blueprint $table) {
-            $table->dropColumn('souvenir_qr_path');
+            $table->dropColumn(['attendance_qr_path', 'souvenir_qr_path']);
         });
     }
 };

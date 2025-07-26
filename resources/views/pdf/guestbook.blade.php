@@ -149,7 +149,6 @@
         @endforeach
     @endforeach
 
-
     {{-- Back Cover Page --}}
     <div class="page">
         <div class="cover-date">

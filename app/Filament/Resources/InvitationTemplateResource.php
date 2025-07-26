@@ -13,6 +13,7 @@ use Dotswan\FilamentGrapesjs\Fields\GrapesJs;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -50,14 +51,23 @@ class InvitationTemplateResource extends Resource
                                 Forms\Components\Hidden::make('template_id')
                                     ->formatStateUsing(fn() => request()->query('template_id')),
                                 Forms\Components\TextInput::make('slug')
-                                    ->label('Slug')
-                                    ->formatStateUsing(fn($record) => $record->slug ?? Str::slug($record->event_name))
                                     ->required()
-                                    ->notIn(Constants::get('MENU', 'slug'))
                                     ->unique(ignoreRecord: true)
-                                    ->maxLength(50),
+                                    ->notIn(Constants::get('MENU', 'slug'))
+                                    ->maxLength(255)
+                                    ->mask(
+                                        RawJs::make(<<<'JS'
+                                            $input => {
+                                                return $input
+                                                    .toLowerCase()
+                                                    .replace(/[^a-z0-9\s-]/g, '')
+                                                    .replace(/\s+/g, '-')
+                                                    .replace(/-+/g, '-');
+                                            }
+                                        JS)
+                                    )
+                                    ->formatStateUsing(fn($record) => $record->slug ?? Str::slug($record->event_name)),
                                 Forms\Components\DateTimePicker::make('published_at')
-                                    ->label('Published at')
                                     ->required(),
                             ])
                     ]),
@@ -125,21 +135,20 @@ class InvitationTemplateResource extends Resource
                                 ]);
                             })
                             ->plugins([
+                                'grapesjs-dinvitations',
                                 'gjs-blocks-basic',
                                 'grapesjs-component-code-editor',
                                 'grapesjs-component-countdown',
                                 'grapesjs-custom-code',
-                                'grapesjs-dinvitations',
                                 'grapesjs-navbar',
                                 'grapesjs-parser-postcss',
                                 'grapesjs-plugin-export',
                                 'grapesjs-plugin-forms',
-                                'grapesjs-preset-webpage',
                                 'grapesjs-rte-extensions',
                                 'grapesjs-style-bg',
                                 'grapesjs-tabs',
                                 'grapesjs-tooltip',
-                                'grapesjs-touch',
+                                // 'grapesjs-touch',
                                 'grapesjs-tui-image-editor',
                                 'grapesjs-typed',
                             ])
@@ -150,7 +159,6 @@ class InvitationTemplateResource extends Resource
                                     'upload' => route('grapesjs.upload'),
                                     'headers' => [
                                         'X-CSRF-TOKEN' => csrf_token(),
-                                        'X-USER-ID' => auth()->user()->id,
                                     ],
                                     'uploadName' => 'files',
                                     'assets' => File::query()
@@ -169,6 +177,7 @@ class InvitationTemplateResource extends Resource
                                         ->values()
                                         ->toArray(),
                                 ],
+                                ...config('filament-grapesjs.settings')
                             ])
                             ->id('template_editor')
                     ])
@@ -262,15 +271,15 @@ class InvitationTemplateResource extends Resource
                     })
                     ->visible(function () {
                         return Invitation::whereHas('order', function ($query) {
-                            $query->where('status', 'active')
-                                ->where('user_id', auth()->user()->id);
-                        })->exists();
+                                $query->where('status', 'active')
+                                    ->where('user_id', auth()->user()->id);
+                            })->exists();
                     })
                     ->url(function ($record) {
                         $invitation = Invitation::whereHas('order', function ($query) {
-                            $query->where('status', 'active')
-                                ->where('user_id', auth()->user()->id);
-                        })->first();
+                                $query->where('status', 'active')
+                                    ->where('user_id', auth()->user()->id);
+                            })->first();
 
                         if (!$invitation) {
                             abort(Response::HTTP_NOT_FOUND, 'No active invitation found for this user.');

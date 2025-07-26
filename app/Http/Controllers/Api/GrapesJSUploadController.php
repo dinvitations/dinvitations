@@ -1,35 +1,44 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\File;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class GrapesJSUploadController extends Controller
 {
     public function upload(Request $request)
     {
+        $user = null;
+
         try {
             $request->validate([
-                'files.*' => 'required|file|max:10240',
+                'files.*' => 'required|file|max:10240', // 10MB per file
             ]);
 
-            $uploaded = [];
+            $userId = auth()?->user()?->id;
 
-            $user = User::find($request->header('X-USER-ID'));
-            if (!$user) {
-                return response()->json(['message' => 'Invalid user.'], 403);
+            $uploads = $request->file('files', []);
+            if (empty($uploads)) {
+                return response()->json(['message' => 'No files uploaded.'], Response::HTTP_NOT_FOUND);
             }
 
-            foreach ($request->file('files', []) as $upload) {
+            $uploaded = [];
+            $disk = 'uploads';
+
+            foreach ($uploads as $upload) {
                 $uuid = (string) Str::uuid();
                 $extension = $upload->getClientOriginalExtension();
-                $filename = pathinfo($upload->getClientOriginalName(), PATHINFO_FILENAME);
-                $disk = 'uploads';
+                $originalName = $upload->getClientOriginalName();
+                $filename = Str::slug(pathinfo($originalName, PATHINFO_FILENAME));
                 $path = "{$uuid}.{$extension}";
 
                 Storage::disk($disk)->put($path, file_get_contents($upload));
@@ -38,16 +47,17 @@ class GrapesJSUploadController extends Controller
                     Log::warning("Upload failed: file not found after put", [
                         'path' => $path,
                         'disk' => $disk,
-                        'filename' => $upload->getClientOriginalName(),
+                        'filename' => $originalName,
+                        'user_id' => $userId,
                     ]);
                     continue;
                 }
 
                 $file = File::create([
                     'fileable_type' => User::class,
-                    'fileable_id' => $user->id,
+                    'fileable_id' => $userId,
                     'name' => $filename,
-                    'original_name' => $upload->getClientOriginalName(),
+                    'original_name' => $originalName,
                     'filename' => $uuid,
                     'path' => $path,
                     'disk' => $disk,
@@ -65,10 +75,13 @@ class GrapesJSUploadController extends Controller
                 ];
             }
 
+            return response()->json(['data' => $uploaded]);
+        } catch (ValidationException $e) {
             return response()->json([
-                'data' => $uploaded
-            ]);
-        } catch (\Throwable $e) {
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (Throwable $e) {
             Log::error('GrapesJS upload failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -76,7 +89,7 @@ class GrapesJSUploadController extends Controller
                 'request' => $request->all(),
             ]);
 
-            return response()->json(['message' => 'Upload failed.'], 500);
+            return response()->json(['message' => 'Upload failed.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
