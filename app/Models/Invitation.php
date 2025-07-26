@@ -97,9 +97,4 @@ class Invitation extends Model
     {
         return max($this->total_seats - $this->guests()->whereNotNull('attended_at')->whereNull('left_at')->sum('guest_count'), 0);
     }
-
-    public function hasFeature(string $featureName): bool
-    {
-        return $this->order?->package?->features?->contains('name', $featureName) ?? false;
-    }
 }

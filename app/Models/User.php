@@ -125,6 +125,20 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(Order::class);
     }
 
+    public function hasFeature(string $featureName): bool
+    {
+        $latestOrder = $this->orders()
+            ->where('status', 'active')
+            ->latest('created_at')
+            ->first();
+
+        if (!$latestOrder || !$latestOrder->package) {
+            return false;
+        }
+
+        return $latestOrder->package->features->contains('name', $featureName);
+    }
+
     /**
      * Check whether the user is manager
      */

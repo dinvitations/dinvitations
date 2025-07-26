@@ -120,7 +120,7 @@ class QRCodeController extends Controller
                     'path' => $pdfPath,
                 ]),
                 'imageUrl' => $disk->temporaryUrl($imagePath, now()->addMinutes(5)),
-                'hasSelfieFeature' => $invitation->hasFeature(Feature::FEATURES['selfie']),
+                'hasSelfieFeature' => auth()->user()->hasFeature(Feature::FEATURES['selfie']),
             ]);
         } catch (Exception $e) {
             Log::error('QR Code view error', ['error' => $e->getMessage(), 'request' => $request->all()]);

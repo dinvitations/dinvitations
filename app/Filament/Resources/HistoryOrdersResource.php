@@ -116,7 +116,7 @@ class HistoryOrdersResource extends Resource
 
                                 $tempSelfiePaths = [];
                                 $selfieBookPath = null;
-                                $hasSelfie = $invitation->hasFeature(Feature::FEATURES['selfie']);
+                                $hasSelfie = auth()->user()->hasFeature(Feature::FEATURES['selfie']);
                                 if ($hasSelfie) {
                                     $guestSelfie = $guests->whereNotNull('selfie_photo_url')
                                         ->map(function ($guest) use (&$tempSelfiePaths) {
