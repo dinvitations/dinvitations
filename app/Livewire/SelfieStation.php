@@ -26,7 +26,7 @@ class SelfieStation extends Component
         }
         
         $invitationGuest = InvitationGuest::where('invitation_id', $invitation->id)
-            ->orderBy('attended_at')
+            ->orderByDesc('attended_at')
             ->first();
 
         $this->guestId = $guestId ?? $invitationGuest->id;

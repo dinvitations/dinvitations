@@ -47,14 +47,6 @@ class SelfieStationResource extends Resource
         return auth()->user()->isClient();
     }
 
-    public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                //
-            ]);
-    }
-
     public static function table(Table $table): Table
     {
         return $table
