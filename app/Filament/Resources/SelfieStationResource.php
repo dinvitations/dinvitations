@@ -3,16 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SelfieStationResource\Pages;
-use App\Filament\Resources\SelfieStationResource\RelationManagers;
 use App\Models\Feature;
 use App\Models\InvitationGuest;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 
 class SelfieStationResource extends Resource
 {
@@ -83,18 +81,57 @@ class SelfieStationResource extends Resource
                 return 'heroicon-o-x-mark';
             })
             ->columns([
-                //
-            ])
-            ->filters([
-                //
+                Tables\Columns\ImageColumn::make('selfie_photo_url')
+                    ->label('Image')
+                    ->disk('minio')
+                    ->visibility('private'),
+
+                Tables\Columns\TextColumn::make('selfie_at')
+                    ->label('Time')
+                    ->dateTime('h:i A')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('guest.name')
+                    ->label('Guest')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('type')
+                    ->label('Category')
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'reg' => 'General',
+                        'vip' => 'VIP',
+                        'vvip' => 'VVIP',
+                        default => strtoupper($state),
+                    })
+                    ->searchable()
+                    ->sortable(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->label('Open')
+                    ->modalHeading(fn ($record) => $record->guest->name)
+                    ->modalContent(fn ($record) => view('filament.widgets.partials.selfie-station-modal', ['record' => $record]))
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\BulkAction::make('removeSelfie')
+                    ->label('Remove Selfie')
+                    ->requiresConfirmation()
+                    ->action(function ($records) {
+                        foreach ($records as $record) {
+                            if ($record->selfie_photo_url) {
+                                Storage::disk('minio')->delete($record->selfie_photo_url);
+                            }
+
+                            $record->update([
+                                'selfie_photo_url' => null,
+                                'selfie_at' => null,
+                            ]);
+                        }
+                    })
+                    ->color('danger')
+                    ->icon('heroicon-o-trash'),
             ]);
     }
 
@@ -119,8 +156,6 @@ class SelfieStationResource extends Resource
     {
         return [
             'index' => Pages\ListSelfieStations::route('/'),
-            'create' => Pages\CreateSelfieStation::route('/create'),
-            'edit' => Pages\EditSelfieStation::route('/{record}/edit'),
         ];
     }
 }
