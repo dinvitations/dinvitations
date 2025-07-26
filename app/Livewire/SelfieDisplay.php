@@ -10,13 +10,15 @@ use Livewire\Component;
 
 class SelfieDisplay extends Component
 {
-    protected $invitation;
-     public $guestId = null;
+    public $guestId = null;
 
     public function mount($guestId = null)
     {
         $this->guestId = $guestId;
+    }
 
+    public function render()
+    {
         $userId = auth()?->user()?->id;
 
         $invitation = Invitation::whereNotNull('published_at')
@@ -31,13 +33,6 @@ class SelfieDisplay extends Component
         if (!$invitation) {
             abort(Response::HTTP_NOT_FOUND, 'No active invitation found for this user.');
         }
-
-        $this->invitation = $invitation;
-    }
-
-    public function render()
-    {
-        $invitation = $this->invitation;
 
         $guest = null;
         if ($this->guestId) {
