@@ -78,6 +78,34 @@ class TemplatesResource extends Resource
                     ->columns(2),
                 Forms\Components\Section::make()
                     ->schema([
+                        Forms\Components\FileUpload::make('display_background_landscape_url')
+                            ->label('Display Screen - Background (Landscape)')
+                            ->disk('minio')
+                            ->directory('display-backgrounds')
+                            ->visibility('private')
+                            ->image()
+                            ->imageEditor()
+                            ->imageResizeMode('force')
+                            ->imageCropAspectRatio('16:9')
+                            ->imageResizeTargetWidth(1920)
+                            ->imageResizeTargetHeight(1080)
+                            ->columnSpanFull(),
+
+                        Forms\Components\FileUpload::make('display_background_portrait_url')
+                            ->label('Display Screen - Background (Portrait)')
+                            ->disk('minio')
+                            ->directory('display-backgrounds')
+                            ->visibility('private')
+                            ->image()
+                            ->imageEditor()
+                            ->imageResizeMode('force')
+                            ->imageCropAspectRatio('9:16')
+                            ->imageResizeTargetWidth(1080)
+                            ->imageResizeTargetHeight(1920)
+                            ->columnSpanFull(),
+                    ]),
+                Forms\Components\Section::make()
+                    ->schema([
                         GrapesJs::make('template_builder')
                             ->label('Template Builder')
                             ->dehydrated(false)

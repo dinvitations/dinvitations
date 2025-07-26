@@ -258,9 +258,9 @@ class InvitationTemplateResource extends Resource
                     ->icon('heroicon-s-pencil-square')
                     ->label(function ($record) {
                         $invitation = Invitation::whereHas('order', function ($query) {
-                            $query->where('status', 'active')
-                                ->where('user_id', auth()->user()->id);
-                        })
+                                $query->where('status', 'active')
+                                    ->where('user_id', auth()->user()->id);
+                            })
                             ->first();
 
                         if ($invitation && $invitation?->template_id === $record->id) {
@@ -271,15 +271,15 @@ class InvitationTemplateResource extends Resource
                     })
                     ->visible(function () {
                         return Invitation::whereHas('order', function ($query) {
-                            $query->where('status', 'active')
-                                ->where('user_id', auth()->user()->id);
-                        })->exists();
+                                $query->where('status', 'active')
+                                    ->where('user_id', auth()->user()->id);
+                            })->exists();
                     })
                     ->url(function ($record) {
                         $invitation = Invitation::whereHas('order', function ($query) {
-                            $query->where('status', 'active')
-                                ->where('user_id', auth()->user()->id);
-                        })->first();
+                                $query->where('status', 'active')
+                                    ->where('user_id', auth()->user()->id);
+                            })->first();
 
                         if (!$invitation) {
                             abort(Response::HTTP_NOT_FOUND, 'No active invitation found for this user.');
