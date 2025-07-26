@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Feature;
 use App\Models\File;
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
@@ -30,9 +31,14 @@ class SelfieController extends Controller
             $guestId = $data['guestId'];
 
             $invitation = Invitation::whereNotNull('published_at')
-                ->whereHas('order', function ($q) use ($userId) {
-                    $q->where('status', 'active')->where('user_id', $userId);
-                })->first();
+                ->whereHas('order', function ($query) use ($userId) {
+                    $query->where('status', 'active')
+                        ->where('user_id', $userId)
+                        ->whereHas('package.features', function ($featureQuery) {
+                            $featureQuery->where('name', Feature::FEATURES['selfie']);
+                        });
+                }, '=', 1)
+                ->first();
 
             if (!$invitation) {
                 return response()->json([

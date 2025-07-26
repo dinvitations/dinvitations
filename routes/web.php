@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\GrapesJSUploadController;
 use App\Http\Controllers\Api\QRCodeController;
 use App\Http\Controllers\Api\RSVPController;
 use App\Http\Controllers\Api\SelfieController;
+use App\Livewire\SelfieDisplay;
 use App\Livewire\SelfieStation;
 use App\Livewire\ShowInvitation;
 use App\Livewire\ShowTemplate;
@@ -16,6 +17,7 @@ Route::middleware(Authenticate::class)->group(function () {
     Route::post('/qrcode/scan', [QRCodeController::class, 'store'])->name('qrcode.scan');
 
     Route::get('/selfie/capture/{guestId?}', SelfieStation::class)->name('selfie.capture');
+    Route::get('/selfie/display/{guestId?}', SelfieDisplay::class)->name('selfie.display');
 });
 
 Route::middleware('signed')->get('/qrcode/view', [QRCodeController::class, 'view'])->name('qrcode.view');

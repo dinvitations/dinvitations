@@ -241,7 +241,10 @@ class QRCodeController extends Controller
     protected function getActiveInvitationForUser(string $userId): ?Invitation
     {
         return Invitation::whereNotNull('published_at')
-            ->whereHas('order', fn ($q) => $q->where('status', 'active')->where('user_id', $userId))
+            ->whereHas('order', function ($query) use ($userId) {
+                $query->where('status', 'active')
+                    ->where('user_id', $userId);
+            }, '=', 1)
             ->first();
     }
 

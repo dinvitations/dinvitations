@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Feature;
 use App\Models\Invitation;
 use App\Models\InvitationGuest;
 use Illuminate\Http\Response;
@@ -17,8 +18,12 @@ class SelfieStation extends Component
         $userId = auth()?->user()?->id;
 
         $invitation = Invitation::whereNotNull('published_at')
-                ->whereHas('order', function ($q) use ($userId) {
-                    $q->where('status', 'active')->where('user_id', $userId);
+                ->whereHas('order', function ($query) use ($userId) {
+                    $query->where('status', 'active')
+                        ->where('user_id', $userId)
+                        ->whereHas('package.features', function ($featureQuery) {
+                            $featureQuery->where('name', Feature::FEATURES['selfie']);
+                        });
                 })->first();
 
         if (!$invitation) {

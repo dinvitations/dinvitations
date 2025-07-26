@@ -138,7 +138,7 @@ class SelfieStationResource extends Resource
                             ->whereHas('package.features', function ($featureQuery) {
                                 $featureQuery->where('name', Feature::FEATURES['selfie']);
                             });
-                    });
+                    }, '=', 1);
             })
             ->whereNotNull(['attended_at', 'selfie_at', 'selfie_photo_url'])
             ->orderByRaw('left_at IS NOT NULL');

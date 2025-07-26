@@ -23,9 +23,9 @@ class LastAttendance extends BaseWidget
     protected function getTableHeading(): string | Htmlable | null
     {
         $invitation = Invitation::whereNotNull('published_at')
-            ->whereHas('order', function ($subQuery) {
-                $subQuery->where('status', 'active');
-                $subQuery->where('user_id', auth()->user()->id);
+            ->whereHas('order', function ($query) {
+                $query->where('status', 'active')
+                    ->where('user_id', auth()->user()->id);
             }, '=', 1)
             ->first();
 
