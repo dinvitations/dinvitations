@@ -70,6 +70,8 @@ class AdminPanelProvider extends PanelProvider
                     ->label(' '),
                 NavigationGroup::make()
                     ->label('Manage'),
+                NavigationGroup::make()
+                    ->label('Pro Plan'),
             ]);
     }
 }
