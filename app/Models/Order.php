@@ -62,4 +62,9 @@ class Order extends Model
     {
         return $this->hasOne(Invitation::class);
     }
+
+    public function hasFeature(string $featureName): bool
+    {
+        return $this->package->features->contains('name', $featureName);
+    }
 }
