@@ -116,7 +116,7 @@ class HistoryOrdersResource extends Resource
 
                                 $tempSelfiePaths = [];
                                 $selfieBookPath = null;
-                                $hasSelfie = auth()->user()->hasFeature(Feature::FEATURES['selfie']);
+                                $hasSelfie = $record->hasFeature(Feature::FEATURES['selfie']);
                                 if ($hasSelfie) {
                                     $guestSelfie = $guests->whereNotNull('selfie_photo_url')
                                         ->map(function ($guest) use (&$tempSelfiePaths) {
@@ -196,7 +196,8 @@ class HistoryOrdersResource extends Resource
     {
         return parent::getEloquentQuery()
             ->whereHas('invitation')
-            ->where('status', 'inactive');
+            ->where('status', 'inactive')
+            ->where('user_id', auth()->user()->id);
     }
 
     public static function getPages(): array
