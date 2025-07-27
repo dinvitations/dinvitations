@@ -25,6 +25,7 @@ class InvitationGuest extends Model
         'attendance_qr_path',
         'souvenir_qr_path',
         'selfie_photo_url',
+        'greeting_wall_image_url',
         'attended_at',
         'souvenir_at',
         'selfie_at',
