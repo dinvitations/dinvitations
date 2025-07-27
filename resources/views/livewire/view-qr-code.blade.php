@@ -36,16 +36,19 @@
                             Back
                         </x-filament::button>
 
+                        @if (false)
                         <x-filament::button
                             type="button"
                             color="gray"
                             class="flex-1"
                             icon="heroicon-o-chevron-right"
                             icon-position="after"
+                            hidden
                             x-on:click="window.location.href = '{{ route('selfie.capture') }}'"
                         >
                             Continue to Selfie
                         </x-filament::button>
+                        @endif
                     </div>
                 @else
                     <x-filament::button
