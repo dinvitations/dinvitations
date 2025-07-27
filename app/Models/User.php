@@ -136,7 +136,7 @@ class User extends Authenticatable implements FilamentUser
             return false;
         }
 
-        return $latestOrder->package->features->contains('name', $featureName);
+        return $latestOrder->hasFeature($featureName);
     }
 
     /**
