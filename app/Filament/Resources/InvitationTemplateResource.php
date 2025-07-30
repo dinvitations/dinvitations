@@ -155,6 +155,7 @@ class InvitationTemplateResource extends Resource
                             ->settings([
                                 'disableStyles' => true,
                                 'disableBlocks' => true,
+                                'disableCodeEditor' => true,
                                 'assetManager' => [
                                     'upload' => route('grapesjs.upload'),
                                     'headers' => [
