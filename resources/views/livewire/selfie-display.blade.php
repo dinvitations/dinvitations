@@ -5,7 +5,7 @@
 @endphp
 
 <div
-    wire:poll.30s
+    wire:poll.15s
     class="flex flex-col text-white text-center px-6 py-10 h-screen bg-cover bg-center relative"
     style="background-image: url('{{ $bgUrl }}');"
 >
