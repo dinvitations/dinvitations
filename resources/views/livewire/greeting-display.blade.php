@@ -4,125 +4,121 @@
         : null;
 @endphp
 
-<div class="w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
-    @if ($bgUrl)
-        <div class="relative h-screen">
-            {{-- Background image --}}
-            <img
-                src="{{ $bgUrl }}"
-                alt="Background"
-                class="h-screen w-auto object-contain z-0"
-            />
+<head>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: black;
+            font-family: 'Inria+Serif', serif;
+        }
+    </style>
+</head>
+<body>
+<form method="POST" action="{{ route('greeting.upload') }}">
+    @csrf
+    <input type="hidden" name="greeting" id="greetingCanvas">
+    <input type="hidden" name="guest_id" id="guestIdInput" value="{{ $guest_id }}">
 
-            {{-- Canvas for drawing --}}
-            <canvas
-                id="drawingCanvas"
-                class="absolute inset-0 z-30 touch-none"
-                style="width: 100%; height: 100%;"
-            ></canvas>
+    <div class="w-screen h-screen flex items-center justify-center bg-black overflow-hidden">
+        @if ($bgUrl)
+            <div wire:poll.5s class="relative h-screen" x-data="signaturePadComponent({{ json_encode($guest_id) }})" x-init="init()">
+                <img
+                    src="{{ $bgUrl }}"
+                    alt="Background"
+                    class="h-screen w-auto object-contain z-0"
+                />
 
-            {{-- Black translucent overlay --}}
-            <div class="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
+                <div class="absolute inset-0 z-20 flex flex-col text-white text-center px-8 py-6 space-y-6">
+                    {{-- Text --}}
+                    <div class="pt-12">
+                        <h2 class="text-lg md:text-xl font-medium py-6">
+                            Welcome to <br>{{ $event_name }}
+                        </h2>
 
-            {{-- Text + Buttons --}}
-            <div class="absolute inset-0 z-20 flex flex-col justify-between text-white text-center px-6 py-6 space-y-6">
-                {{-- Top Text Section --}}
-                <div class="pt-6">
-                    <h2 class="text-lg md:text-xl font-medium mb-2">
-                        Welcome to <br>{{ $event_name }}
-                    </h2>
+                        <h1 class="text-5xl font-extrabold tracking-tight leading-tight py-6">
+                            {{ $guest_name }}
+                        </h1>
 
-                    <h1 class="text-lg md:text-xl font-extrabold tracking-tight leading-tight mb-2">
-                        {{ $guest_name }}
-                    </h1>
+                        <h2 class="text-lg md:text-xl font-medium py-6">
+                            At {{ $address }}
+                        </h2>
 
-                    <h2 class="text-lg md:text-xl font-medium mb-2">
-                        At {{ $address }}
-                    </h2>
+                        <h2 class="text-lg md:text-xl font-medium pt-6">
+                            Write down your love, hopes, and prayers <br> right here.
+                        </h2>
+                    </div>
 
-                    <h2 class="text-lg md:text-xl font-medium">
-                        Write down your love, hopes, and prayers right here.
-                    </h2>
+                    {{-- Canvas --}}
+                    <div class="flex justify-center px-6">
+                        <div class="w-full overflow-hidden">
+                            <canvas
+                                x-ref="canvas"
+                                class="w-full touch-none rounded-[45px]"
+                                style="touch-action: none; height: 40vh;"
+                            ></canvas>
+                        </div>
+                    </div>
+
+                    {{-- Buttons --}}
+                    <div class="flex justify-between gap-8 px-6 pb-6">
+                        <button
+                            type="button"
+                            x-on:click="clear()"
+                            class="flex-1 border border-white text-white font-semibold py-2 rounded-lg transition hover:bg-white hover:text-black"
+                        >
+                            Refresh
+                        </button>
+
+                        <button
+                            type="submit"
+                            x-on:click="submit"
+                            class="flex-1 bg-white text-black font-semibold py-2 rounded-lg transition hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                            Submit
+                        </button>
+                    </div>
                 </div>
 
-                {{-- Buttons --}}
-                <div class="flex justify-between gap-4 px-2 pb-6">
-                    <button
-                        type="button"
-                        wire:click="$refresh"
-                        class="flex-1 border border-white text-white font-semibold py-2 rounded-lg transition hover:bg-white hover:text-black"
-                    >
-                        Refresh
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="flex-1 bg-white text-black font-semibold py-2 rounded-lg transition hover:opacity-90"
-                    >
-                        Submit
-                    </button>
-                </div>
+                <div class="absolute inset-0 bg-black bg-opacity-50 z-10"></div>
             </div>
-        </div>
-    @endif
-</div>
+        @endif
+    </div>
+</form>
 
 <script>
-    const canvas = document.getElementById('drawingCanvas');
-    const ctx = canvas.getContext('2d');
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('signaturePadComponent', (guestId) => ({
+            signaturePad: null,
 
-    let isDrawing = false;
+            init() {
+                const canvas = this.$refs.canvas;
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                canvas.width = canvas.offsetWidth * ratio;
+                canvas.height = canvas.offsetHeight * ratio;
+                canvas.getContext('2d').scale(ratio, ratio);
 
-    // Resize canvas to actual pixel size
-    function resizeCanvas() {
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
-    }
+                this.signaturePad = new SignaturePad(canvas, {
+                    penColor: 'black',
+                    backgroundColor: 'rgba(255,255,255,0.8)',
+                });
+            },
 
-    window.addEventListener('load', resizeCanvas);
-    window.addEventListener('resize', resizeCanvas);
+            clear() {
+                this.signaturePad.clear();
+            },
 
-    function getPosition(e) {
-        const rect = canvas.getBoundingClientRect();
-        return {
-            x: (e.touches ? e.touches[0].clientX : e.clientX) - rect.left,
-            y: (e.touches ? e.touches[0].clientY : e.clientY) - rect.top
-        };
-    }
-
-    function startDraw(e) {
-        e.preventDefault();
-        isDrawing = true;
-        const pos = getPosition(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-    }
-
-    function draw(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-        const pos = getPosition(e);
-        ctx.lineTo(pos.x, pos.y);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-    }
-
-    function endDraw() {
-        isDrawing = false;
-        ctx.closePath();
-    }
-
-    // Mouse
-    canvas.addEventListener('mousedown', startDraw);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', endDraw);
-    canvas.addEventListener('mouseout', endDraw);
-
-    // Touch
-    canvas.addEventListener('touchstart', startDraw, { passive: false });
-    canvas.addEventListener('touchmove', draw, { passive: false });
-    canvas.addEventListener('touchend', endDraw);
+            submit() {
+                if (this.signaturePad.isEmpty()) {
+                    if (confirm('Greeting is empty. Are you sure you want to submit without writing anything?')) {
+                        document.getElementById('greetingCanvas').value = '';
+                    } else {
+                        event.preventDefault();
+                    }
+                } else {
+                    document.getElementById('greetingCanvas').value = this.signaturePad.toDataURL();
+                }
+            }
+        }));
+    });
 </script>

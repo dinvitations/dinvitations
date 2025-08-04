@@ -29,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
         FilamentAsset::register([
             Js::make('html5-qrcode', 'https://unpkg.com/html5-qrcode'),
             Js::make('webcam', 'https://unpkg.com/webcam-easy/dist/webcam-easy.min.js'),
+            Js::make('SignaturePad', 'https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js'),
             Js::make('qrScanner', __DIR__ . '/../../resources/js/qrScanner.js'),
             Js::make('qrPrinter',  __DIR__ . '/../../resources/js/qrPrinter.js'),
             Js::make('selfieStation',  __DIR__ . '/../../resources/js/selfieStation.js'),

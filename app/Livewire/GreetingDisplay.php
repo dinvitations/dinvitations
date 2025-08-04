@@ -42,23 +42,19 @@ class GreetingDisplay extends Component
             }
         } else {
             $guest = InvitationGuest::where('invitation_id', $invitation->id)
+                ->whereNull('greeting_wall_image_url')
                 ->whereNotNull('attended_at')
                 ->orderByDesc('attended_at')
                 ->first();
         }
 
-        $eventName = $invitation->event_name;
-        $guestName = $guest?->guest?->name ?? 'All Our Dear Guests';
-        $eventDate = $this->formatEventDate($invitation);
-        $address = $invitation->location;
-        $backgroundUrl = $invitation->template?->display_background_portrait_url ?? null;
-
         return view('livewire.greeting-display', [
-            'event_name' => $eventName,
-            'guest_name' => $guestName,
-            'event_date' => $eventDate,
-            'address' => $address,
-            'background_url' => $backgroundUrl,
+            'event_name' => $invitation->event_name,
+            'guest_id' => $guest?->id,
+            'guest_name' => $guest?->guest?->name ?? 'All Our Dear Guests',
+            'event_date' => $this->formatEventDate($invitation),
+            'address' => $invitation->location,
+            'background_url' => $invitation->template?->display_background_portrait_url ?? null,
         ]);
     }
 
