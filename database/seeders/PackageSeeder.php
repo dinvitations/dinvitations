@@ -15,36 +15,49 @@ class PackageSeeder extends Seeder
     {
         $features = Feature::query()
             ->whereIn('name', Feature::FEATURES)
-            ->get()
-            ->pluck('id')
-            ->toArray();
+            ->get();
 
         $packages = [
             [
                 'name' => Package::NAMES['basic'],
                 'price' => 1999000,
-                'features' => [
-                    $features[0],
-                ],
+                'features' => $features
+                    ->whereIn('name', [
+                        Feature::FEATURES['scan'],
+                    ])
+                    ->pluck('id')
+                    ->values()
+                    ->toArray()
             ],
             [
                 'name' => Package::NAMES['medium'],
                 'price' => 3999000,
-                'features' => [
-                    $features[0], $features[1],
-                ],
+                'features' => $features
+                    ->whereIn('name', [
+                        Feature::FEATURES['scan'],
+                        Feature::FEATURES['selfie'],
+                    ])
+                    ->pluck('id')
+                    ->values()
+                    ->toArray()
             ],
             [
                 'name' => Package::NAMES['premium'],
                 'price' => 5999000,
-                'features' => [
-                    $features[0], $features[2]
-                ],
+                'features' => $features
+                    ->whereIn('name', [
+                        Feature::FEATURES['scan'],
+                        Feature::FEATURES['selfie'],
+                        Feature::FEATURES['display'],
+                    ])
+                    ->pluck('id')
+                    ->values()
+                    ->toArray()
             ],
             [
                 'name' => Package::NAMES['luxury'],
                 'price' => 7999000,
-                'features' => $features,
+                'features' => $features->map->id->toArray(),
             ],
         ];
 
