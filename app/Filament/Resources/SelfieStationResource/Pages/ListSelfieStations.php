@@ -24,7 +24,7 @@ class ListSelfieStations extends ListRecords
                 $query->where('status', 'active')
                     ->where('user_id', auth()->user()->id)
                     ->whereHas('package.features', function ($featureQuery) {
-                        $featureQuery->where('name', Feature::FEATURES['selfie']);
+                        $featureQuery->where('name', Feature::FEATURES['display']);
                     });
             }, '=', 1)
             ->first();
