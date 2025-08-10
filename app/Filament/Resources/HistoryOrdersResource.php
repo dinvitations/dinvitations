@@ -93,25 +93,26 @@ class HistoryOrdersResource extends Resource
                                         $attendedAt = $entry->attended_at;
 
                                         return [
-                                            'name'            => $entry->guest->name ?? '',
-                                            'type'            => match ($entry->type) {
-                                                'reg'  => 'General',
-                                                'vip'  => 'VIP',
+                                            'name' => $entry->guest->name ?? '',
+                                            'type' => match ($entry->type) {
+                                                'reg' => 'General',
+                                                'vip' => 'VIP',
                                                 'vvip' => 'VVIP',
                                                 default => strtoupper($entry->type ?? '')
                                             },
-                                            'rsvp'            => $entry->rsvp ?? '',
-                                            'attended_at'     => $attendedAt ? $attendedAt->format('h.i A') : '-',
-                                            'souvenir_at'     => $entry->souvenir_at ? $entry->souvenir_at->format('h.i A') : '-',
-                                            'selfie_at'       => $entry->selfie_at ? $entry->selfie_at->format('h.i A') : '-',
+                                            'rsvp' => $entry->rsvp ?? '',
+                                            'attended_at' => $attendedAt ? $attendedAt->format('h.i A') : '-',
+                                            'souvenir_at' => $entry->souvenir_at ? $entry->souvenir_at->format('h.i A') : '-',
+                                            'selfie_at' => $entry->selfie_at ? $entry->selfie_at->format('h.i A') : '-',
                                             'attendance_date' => $attendedAt ? $attendedAt->toDateString() : null,
                                             'selfie_photo_url' => $entry->selfie_photo_url ?? null,
+                                            'greeting_wall_image_url' => $entry->greeting_wall_image_url ?? null,
                                         ];
                                     });
 
                                 $guestByDate = $guests->sortBy(function ($guest) {
-                                        return $guest['attendance_date'] ?? '9999-12-31';
-                                    })
+                                    return $guest['attendance_date'] ?? '9999-12-31';
+                                })
                                     ->groupBy('attendance_date');
 
                                 $tempSelfiePaths = [];
@@ -147,6 +148,38 @@ class HistoryOrdersResource extends Resource
                                     ])->setPaper('a4', 'landscape')->save($selfieBookPath);
                                 }
 
+                                $tempGreetingPaths = [];
+                                $greetingBookPath = null;
+                                if ($record->hasFeature(Feature::FEATURES['greeting'])) {
+                                    $greetingGuests = $guests->filter(fn($guest) => !empty($guest['greeting_wall_image_url']))
+                                        ->map(function ($guest) use (&$tempGreetingPaths) {
+                                            $path = $guest['greeting_wall_image_url'];
+
+                                            if (Storage::disk('minio')->exists($path)) {
+                                                $imageContents = Storage::disk('minio')->get($path);
+                                                $tempFilename = 'temp_greeting_' . Str::uuid() . '.png';
+                                                $tempPath = storage_path('app/public/' . $tempFilename);
+
+                                                file_put_contents($tempPath, $imageContents);
+                                                $guest['greeting_wall_image_url'] = $tempPath;
+                                                $tempGreetingPaths[] = $tempPath;
+                                            } else {
+                                                $guest['greeting_wall_image_url'] = null;
+                                            }
+
+                                            return $guest;
+                                        })
+                                        ->sortBy('attended_at');
+
+                                    $greetingBookPath = storage_path('app/public/greetingbook_' . $record->order_number . '.pdf');
+                                    Pdf::loadView('pdf.greetingbook', [
+                                        'invitation' => $invitation,
+                                        'greetingGuests' => $greetingGuests,
+                                        'dateStart' => $invitation->date_start,
+                                        'dateEnd' => $invitation->date_end,
+                                    ])->setPaper('a4', 'landscape')->save($greetingBookPath);
+                                }
+
                                 $guestBookPath = storage_path('app/public/guestbook_' . $record->order_number . '.pdf');
                                 Pdf::loadView('pdf.guestbook', [
                                     'invitation' => $invitation,
@@ -155,8 +188,16 @@ class HistoryOrdersResource extends Resource
                                     'dateEnd' => $invitation->date_end,
                                 ])->setPaper('a4', 'landscape')->save($guestBookPath);
 
-                                register_shutdown_function(function () use ($guestBookPath, $selfieBookPath, $tempSelfiePaths) {
+                                register_shutdown_function(function () use ($guestBookPath, $greetingBookPath, $tempGreetingPaths, $selfieBookPath, $tempSelfiePaths) {
                                     @unlink($guestBookPath);
+
+                                    if ($greetingBookPath) {
+                                        @unlink($greetingBookPath);
+                                    }
+                                    foreach ($tempGreetingPaths as $tempPath) {
+                                        @unlink($tempPath);
+                                    }
+
                                     if ($selfieBookPath) {
                                         @unlink($selfieBookPath);
                                     }
@@ -171,6 +212,7 @@ class HistoryOrdersResource extends Resource
                                     if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
                                         $zip->addFile($guestBookPath, 'guestbook.pdf');
                                         $zip->addFile($selfieBookPath, 'selfiebook.pdf');
+                                        $zip->addFile($greetingBookPath, 'greetingbook.pdf');
                                         $zip->close();
                                     }
 
