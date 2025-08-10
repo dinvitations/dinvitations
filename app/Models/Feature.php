@@ -21,8 +21,9 @@ class Feature extends Model
 
     const FEATURES = [
         'scan' => 'Scan & Redeem Station',
-        'greeting' => 'Digital Greeting Wall',
         'selfie' => 'Digital Selfie Station',
+        'display' => 'Guest Display Screen',
+        'greeting' => 'Digital Greeting Wall',
     ];
 
     protected static function booted()

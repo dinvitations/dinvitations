@@ -103,10 +103,6 @@ class GreetingWallResource extends Resource
                     ->label('Open')
                     ->modalHeading(fn($record) => $record->guest->name)
                     ->modalContent(fn($record) => view('filament.widgets.partials.greeting-wall-modal', ['record' => $record])),
-
-                Tables\Actions\Action::make('rewrite')
-                    ->icon('heroicon-s-pencil-square')
-                    ->label('Rewrite'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -128,8 +124,11 @@ class GreetingWallResource extends Resource
                             });
                     }, '=', 1);
             })
-            ->whereNotNull(['attended_at', 'greeting_wall_image_url'])
-            ->orderByRaw('left_at IS NOT NULL');
+            ->where([
+                ['attended_at', '<>', null],
+                ['greeting_wall_image_url', '<>', null],
+                ['greeting_wall_image_url', '<>', ''],
+            ]);
     }
 
     public static function getPages(): array
