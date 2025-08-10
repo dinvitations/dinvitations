@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\GrapesJSUploadController;
+use App\Http\Controllers\Api\GreetingController;
 use App\Http\Controllers\Api\QRCodeController;
 use App\Http\Controllers\Api\RSVPController;
 use App\Http\Controllers\Api\SelfieController;
@@ -21,6 +22,7 @@ Route::middleware(Authenticate::class)->group(function () {
     Route::get('/selfie/display/{guestId?}', SelfieDisplay::class)->name('selfie.display');
 
     Route::get('/greeting/display/{guestId?}', GreetingDisplay::class)->name('greeting.display');
+    Route::post('/greeting/upload', [GreetingController::class, 'upload'])->name('greeting.upload');
 });
 
 Route::middleware('signed')->get('/qrcode/view', [QRCodeController::class, 'view'])->name('qrcode.view');
