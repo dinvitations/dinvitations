@@ -78,7 +78,24 @@ class GuestTable extends Component implements HasTable, HasForms
 
                 Columns\TextColumn::make('phone_number')
                     ->label('Whatsapp Number')
-                    ->formatStateUsing(fn($state) => "+62 $state")
+                    ->formatStateUsing(function ($state) {
+                        // Remove any non-digit characters just in case
+                        $digits = preg_replace('/\D/', '', $state);
+
+                        // Format: +62 xxx-xxxx-xxxx
+                        if (substr($digits, 0, 2) === '62') {
+                            $country = '+62';
+                            $main = substr($digits, 2);
+
+                            // Example: split into 3 parts (3-4-4 pattern)
+                            $formatted = preg_replace('/(\d{3})(\d{4})(\d+)/', '$1-$2-$3', $main);
+
+                            return $country . ' ' . $formatted;
+                        }
+
+                        // If not starting with 62, just return as-is
+                        return $digits;
+                    })
                     ->placeholder('No Data'),
 
                 Columns\TextColumn::make('status')
@@ -239,12 +256,14 @@ class GuestTable extends Component implements HasTable, HasForms
                                 ->whereHas('invitation', function ($query) {
                                     $query->whereNotNull('published_at');
                                 })
-                                ->firstOrFail();
+                                ->first();
 
-                            return $record->invitationGuests()->firstOrCreate([
-                                'invitation_id' => $order->invitation?->id,
-                                'type' => $record->type_default,
-                            ]);
+                            if ($order) {
+                                return $record->invitationGuests()->firstOrCreate([
+                                    'invitation_id' => $order->invitation?->id,
+                                    'type' => $record->type_default,
+                                ]);
+                            }
                         });
 
                         $invitation = $invitationGuest?->invitation;
@@ -290,12 +309,20 @@ class GuestTable extends Component implements HasTable, HasForms
                                     ->label('Whatsapp Number')
                                     ->tel()
                                     ->prefix('+62')
-                                    ->placeholder('Ex: 812-3456-7890')
+                                    ->placeholder('E.g 812-...')
                                     ->helperText('Make sure to enter a reachable phone number.')
+                                    ->extraAttributes([
+                                        'inputmode' => 'numeric',
+                                        'pattern' => '[0-9]*',
+                                        'x-on:beforeinput' => "
+                                            if (event.data && /[^0-9]/.test(event.data)) {
+                                                event.preventDefault();
+                                            }
+                                        ",
+                                    ])
                                     ->mask(RawJs::make(<<<'JS'
                                         $input => {
-                                            let numbers = $input.replace(/\D/g, '').replace(/^0+/, '');
-                                            numbers = numbers.slice(0, 13);
+                                            let numbers = $input.replace(/\D/g, '').replace(/^0+/, '').slice(0, 13);
 
                                             const parts = [];
                                             if (numbers.length <= 3) {
@@ -311,18 +338,35 @@ class GuestTable extends Component implements HasTable, HasForms
                                             return parts.join('-');
                                         }
                                     JS))
+                                    ->dehydrateStateUsing(
+                                        fn($state) => $state
+                                        ? '62' . ltrim(preg_replace('/\D+/', '', $state), '0')
+                                        : null
+                                    )
                                     ->afterStateHydrated(function ($state, Set $set) {
                                         if (!$state)
                                             return;
 
                                         $digits = preg_replace('/\D+/', '', $state);
                                         $local = preg_replace('/^(62|0)/', '', $digits);
+                                        $local = substr($local, 0, 13);
 
-                                        $set('phone_number', $local);
+                                        $formatted = match (true) {
+                                            strlen($local) <= 3 => $local,
+                                            strlen($local) <= 7 => substr($local, 0, 3) . '-' . substr($local, 3),
+                                            strlen($local) <= 11 => substr($local, 0, 3) . '-' . substr($local, 3, 4) . '-' . substr($local, 7),
+                                            default => substr($local, 0, 3) . '-' . substr($local, 3, 4) . '-' . substr($local, 7, 4) . '-' . substr($local, 11),
+                                        };
+
+                                        $set('phone_number', $formatted);
                                     })
-                                    ->rule(fn() => function ($attribute, $value, $fail) {
+                                    ->rule(fn() => function ($attributes, $value, $fail) {
                                         $digits = ltrim(preg_replace('/\D+/', '', $value), '0');
                                         $length = strlen($digits);
+
+                                        if (!ctype_digit($digits)) {
+                                            $fail('The WhatsApp number must contain digits only.');
+                                        }
 
                                         if ($length < 7 || $length > 13) {
                                             $fail('The WhatsApp number must be between 7 and 13 digits.');
@@ -403,12 +447,20 @@ class GuestTable extends Component implements HasTable, HasForms
                                     ->label('Whatsapp Number')
                                     ->tel()
                                     ->prefix('+62')
-                                    ->placeholder('Ex: 812-3456-7890')
+                                    ->placeholder('E.g 812-...')
                                     ->helperText('Make sure to enter a reachable phone number.')
+                                    ->extraAttributes([
+                                        'inputmode' => 'numeric',
+                                        'pattern' => '[0-9]*',
+                                        'x-on:beforeinput' => "
+                                            if (event.data && /[^0-9]/.test(event.data)) {
+                                                event.preventDefault();
+                                            }
+                                        ",
+                                    ])
                                     ->mask(RawJs::make(<<<'JS'
                                         $input => {
-                                            let numbers = $input.replace(/\D/g, '').replace(/^0+/, '');
-                                            numbers = numbers.slice(0, 13);
+                                            let numbers = $input.replace(/\D/g, '').replace(/^0+/, '').slice(0, 13);
 
                                             const parts = [];
                                             if (numbers.length <= 3) {
@@ -424,18 +476,35 @@ class GuestTable extends Component implements HasTable, HasForms
                                             return parts.join('-');
                                         }
                                     JS))
+                                    ->dehydrateStateUsing(
+                                        fn($state) => $state
+                                        ? '62' . ltrim(preg_replace('/\D+/', '', $state), '0')
+                                        : null
+                                    )
                                     ->afterStateHydrated(function ($state, Set $set) {
                                         if (!$state)
                                             return;
 
                                         $digits = preg_replace('/\D+/', '', $state);
                                         $local = preg_replace('/^(62|0)/', '', $digits);
+                                        $local = substr($local, 0, 13);
 
-                                        $set('phone_number', $local);
+                                        $formatted = match (true) {
+                                            strlen($local) <= 3 => $local,
+                                            strlen($local) <= 7 => substr($local, 0, 3) . '-' . substr($local, 3),
+                                            strlen($local) <= 11 => substr($local, 0, 3) . '-' . substr($local, 3, 4) . '-' . substr($local, 7),
+                                            default => substr($local, 0, 3) . '-' . substr($local, 3, 4) . '-' . substr($local, 7, 4) . '-' . substr($local, 11),
+                                        };
+
+                                        $set('phone_number', $formatted);
                                     })
-                                    ->rule(fn() => function ($attribute, $value, $fail) {
+                                    ->rule(fn() => function ($attributes, $value, $fail) {
                                         $digits = ltrim(preg_replace('/\D+/', '', $value), '0');
                                         $length = strlen($digits);
+
+                                        if (!ctype_digit($digits)) {
+                                            $fail('The WhatsApp number must contain digits only.');
+                                        }
 
                                         if ($length < 7 || $length > 13) {
                                             $fail('The WhatsApp number must be between 7 and 13 digits.');
