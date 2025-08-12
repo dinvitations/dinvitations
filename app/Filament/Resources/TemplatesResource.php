@@ -157,8 +157,8 @@ class TemplatesResource extends Resource
                                 ]);
                             })
                             ->plugins([
-                                'grapesjs-dinvitations',
                                 'gjs-blocks-basic',
+                                'grapesjs-dinvitations',
                                 'grapesjs-component-code-editor',
                                 'grapesjs-component-countdown',
                                 'grapesjs-custom-code',

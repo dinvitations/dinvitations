@@ -30,8 +30,8 @@ return [
         'js' => [
             // slug => path to js file in your resources directory
             // 'slug' => 'path/to/js/file.js',
-            'grapesjs-dinvitations' => 'js/grapesjs-dinvitations.min.js',
             'gjs-blocks-basic' => 'https://unpkg.com/grapesjs-blocks-basic',
+            'grapesjs-dinvitations' => 'js/grapesjs-dinvitations.min.js',
             'grapesjs-component-code-editor' => 'https://unpkg.com/grapesjs-component-code-editor',
             'grapesjs-component-countdown' => 'https://unpkg.com/grapesjs-component-countdown',
             'grapesjs-custom-code' => 'https://unpkg.com/grapesjs-custom-code',
@@ -74,9 +74,19 @@ return [
                 ]
             ]
         ],
-        'pluginOpts' => [
+        'pluginsOpts' => [
             'gjs-blocks-basic' => [
-                'flexGrid' => true
+                'flexGrid' => true,
+                'blocks' => [
+                    'column1',
+                    'column2',
+                    'column3',
+                    'column3-7',
+                    'text',
+                    'link',
+                    'image',
+                    'video'
+                ]
             ],
             'grapesjs-tabs' => [
                 'tabsBlock' => [
