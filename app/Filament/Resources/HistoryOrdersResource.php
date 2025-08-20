@@ -150,7 +150,7 @@ class HistoryOrdersResource extends Resource
 
                                 $tempGreetingPaths = [];
                                 $greetingBookPath = null;
-                                if ($record->hasFeature(Feature::FEATURES['greeting'])) {
+                                if ($hasGreeting = $record->hasFeature(Feature::FEATURES['greeting'])) {
                                     $greetingGuests = $guests->filter(fn($guest) => !empty($guest['greeting_wall_image_url']))
                                         ->map(function ($guest) use (&$tempGreetingPaths) {
                                             $path = $guest['greeting_wall_image_url'];
@@ -212,7 +212,10 @@ class HistoryOrdersResource extends Resource
                                     if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE)) {
                                         $zip->addFile($guestBookPath, 'guestbook.pdf');
                                         $zip->addFile($selfieBookPath, 'selfiebook.pdf');
-                                        $zip->addFile($greetingBookPath, 'greetingbook.pdf');
+
+                                        if ($hasGreeting && $greetingBookPath && file_exists($greetingBookPath))
+                                            $zip->addFile($greetingBookPath, 'greetingbook.pdf');
+
                                         $zip->close();
                                     }
 
