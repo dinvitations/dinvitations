@@ -27,7 +27,7 @@ class GuestTable extends Component implements HasTable, HasForms
 {
     use InteractsWithTable, InteractsWithForms;
 
-    public ?string $groupId = null, $groupName = null;
+    public ?string $groupId = null, $groupName = null, $parsedMessage = null;
     protected ?InvitationGuest $invitationGuest = null;
 
     public function mount(string $groupId, string $groupName): void
@@ -248,44 +248,72 @@ class GuestTable extends Component implements HasTable, HasForms
                     ->icon('heroicon-o-paper-airplane')
                     ->label('Copy')
                     ->visible(fn(Guest $guest) => $guest->invitationGuests->isNotEmpty() || empty($guest->phone_number))
-                    ->url('#')
-                    ->extraAttributes(function (Guest $record, $livewire) {
+                    ->action(function (Guest $record) {
                         $invitationGuest = DB::transaction(function () use ($record) {
                             $order = auth()->user()->orders()
                                 ->where('status', 'active')
-                                ->whereHas('invitation', function ($query) {
-                                    $query->whereNotNull('published_at');
-                                })
+                                ->whereHas('invitation', fn($q) => $q->whereNotNull('published_at'))
                                 ->first();
 
-                            if ($order) {
-                                return $record->invitationGuests()->firstOrCreate([
-                                    'invitation_id' => $order->invitation?->id,
-                                    'type' => $record->type_default,
-                                ]);
+                            if (!$order) {
+                                Notification::make()
+                                    ->title('No active published invitation found')
+                                    ->danger()
+                                    ->send();
+                                return null;
                             }
+
+                            return $record->invitationGuests()->firstOrCreate([
+                                'invitation_id' => $order->invitation?->id,
+                                'type' => $record->type_default,
+                            ]);
                         });
 
-                        $invitation = $invitationGuest?->invitation;
+                        if (!$invitationGuest)
+                            return;
 
-                        if (blank($invitation))
-                            return [];
+                        $invitation = $invitationGuest->invitation;
 
-                        $parsedMessage = InvitationHelper::getMessage($invitation, $record, $invitationGuest->id);
+                        // Generate QR code if missing
+                        if (blank($invitationGuest->attendance_qr_path)) {
+                            try {
+                                $disk = 'minio';
+                                $path = 'qr-codes/' . ($invitation?->slug ?? 'inv') . "_{$record->id}.png";
+                                $qrContent = json_encode([
+                                    'id' => $invitationGuest->id,
+                                    'type' => 'attendance',
+                                ]);
+                                $qrPng = QrCode::format('png')->size(250)->generate($qrContent);
 
-                        $jsSnippet = <<<JS
-                            async () => {
-                                try {
-                                    await navigator.clipboard.writeText(`{$parsedMessage}`);
-                                } catch (err) {
-                                    console.error('Failed to copy: ', err);
+                                Storage::disk($disk)->put($path, $qrPng);
+
+                                if (!Storage::disk($disk)->exists($path)) {
+                                    throw new \Exception("Failed to store QR file at {$path}");
                                 }
-                            }
-                        JS;
 
-                        return [
-                            'x-on:click.prevent' => new HtmlString($jsSnippet),
-                        ];
+                                DB::transaction(function () use ($invitationGuest, $path) {
+                                    $invitationGuest->update(['attendance_qr_path' => $path]);
+                                });
+                            } catch (\Throwable $th) {
+                                Log::error("Failed to store QR file at {$path}");
+                                report($th);
+
+                                Notification::make()
+                                    ->title('Failed to generate QR')
+                                    ->danger()
+                                    ->send();
+                                return;
+                            }
+                        }
+
+                        // Build message
+                        $this->parsedMessage = InvitationHelper::getMessage($invitation, $record, $invitationGuest->id);
+                        $this->dispatch('copy-to-clipboard', text: $this->parsedMessage);
+
+                        Notification::make()
+                            ->title('Message copied')
+                            ->success()
+                            ->send();
                     }),
 
                 Actions\EditAction::make()

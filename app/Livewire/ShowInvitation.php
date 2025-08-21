@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 #[Layout('components.layouts.show-invitation')]
 class ShowInvitation extends Component
