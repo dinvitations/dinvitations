@@ -42,7 +42,7 @@
                             class="flex-1"
                             icon="heroicon-o-chevron-right"
                             icon-position="after"
-                            x-on:click="window.location.href = '{{ route('selfie.capture') }}'"
+                            x-on:click="window.location.href = '{{ route('selfie.capture', ['guestId' => $guestId]) }}'"
                         >
                             Continue to Selfie
                         </x-filament::button>
