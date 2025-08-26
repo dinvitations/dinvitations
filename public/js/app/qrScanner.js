@@ -88,7 +88,7 @@ if (!window.qrScanner) {
                     this.successMessage = data.message || 'Success!';
 
                     if (data.qrcode_view_url) {
-                        window.open(data.qrcode_view_url, '_blank');
+                        window.open(data.qrcode_view_url, '_self');
                     }
                 } catch (err) {
                     this.showError(err.message || 'An unexpected error occurred.');
