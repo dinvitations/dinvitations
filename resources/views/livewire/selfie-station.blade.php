@@ -12,7 +12,7 @@
     <video id="webcam" autoplay playsinline class="absolute top-0 left-0 w-full h-full object-cover z-0"></video>
 
     <!-- Selfie Frame Corners -->
-    <div class="absolute inset-4 pointer-events-none z-[999]">
+    <div class="absolute inset-4 pointer-events-none z-10">
         <template x-for="corner in [
             { pos: 'top-0 left-0', borders: 'border-t-4 border-l-4' },
             { pos: 'top-0 right-0', borders: 'border-t-4 border-r-4' },
@@ -26,7 +26,7 @@
     </div>
 
     <!-- Capture + Stop Buttons -->
-    <div class="z-50 absolute bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
+    <div class="z-10 absolute bottom-10 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
         <!-- Capture -->
         <button
             @click="capture"
